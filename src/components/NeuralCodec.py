@@ -30,10 +30,6 @@ class EnCodec(nn.Module):
         with torch.no_grad(): 
             encoded_outputs = self.model.encode(X)
         
-        latents = encoded_outputs["audio_codes"]  
-        batch_size, _, _, seq_len = latents.shape
-        latents = latents.view(batch_size, -1, seq_len).permute(0, 2, 1)  # [batch_size, seq_len, combined_features]
+        latents = encoded_outputs["audio_codes"].squeeze(0)
         projected_outputs = self.embedding_head(latents)
-        print("Projected outputs shape:", projected_outputs.shape)
-
         return projected_outputs

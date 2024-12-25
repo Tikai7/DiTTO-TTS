@@ -23,13 +23,14 @@ class SLP(nn.Module):
             nn.TransformerDecoderLayer(
                 d_model=self.hidden_size,       
                 nhead=nhead,                   
-                dim_feedforward=self.hidden_size * nhead 
+                dim_feedforward=self.hidden_size * nhead,
+                batch_first=True
             ),
             num_layers=num_layers
         )
         # Outputs a distribution over lengths up to `max_audio_token_length`
-        self.length_predictor = nn.Linear(self.hidden_size * nhead, max_audio_token_length)
-    
+        self.length_predictor = nn.Linear(self.hidden_size, max_audio_token_length)
+
     def forward(self, text, audio):
         """
         Forward pass for the SLP model.
@@ -43,18 +44,20 @@ class SLP(nn.Module):
         """
         z_text = self.text_encoder(text)
         z_audio = self.audio_encoder(audio)
+        z_audio = z_audio.view(z_audio.size(0), -1, z_audio.size(-1))  # Combine codebook et temporal length
 
-        print(z_text.shape, z_audio.shape)
-        tgt_mask = self.generate_causal_mask(z_audio.size(0))
+        tgt_mask = self.generate_causal_mask(z_audio.size(1), z_audio.device)
 
         # Transformer Decoder to apply cross-attention between audio and text embeddings
         z_audio_decoded = self.transformer(z_audio, z_text, tgt_mask=tgt_mask)
+
         # Use the last token's embedding to predict the audio length
         lengths = self.length_predictor(z_audio_decoded[:, -1, :])
-        
+
         return lengths
 
     @staticmethod
-    def generate_causal_mask(size):
+    def generate_causal_mask(size, device):
         mask = torch.triu(torch.ones(size, size), diagonal=1).bool()
+        mask = mask.to(device)
         return mask
