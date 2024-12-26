@@ -1,3 +1,5 @@
+import torch
+
 class Config:
     # Audio settings
     SAMPLE_RATE = 24000  # Hz
@@ -10,13 +12,16 @@ class Config:
     # Model settings
     MODEL_NAME = "DiTTO-TTS"  # Replace with your model's name
     EMBEDDING_DIM = 1472  # Audio embedding dimension
-    NUM_LAYERS = 6  # Number of model layers
-    NHEAD = 4  # Number of attention heads
+    NUM_LAYERS = 1  # Number of model layers
+    NHEAD = 1  # Number of attention heads
 
     # Training settings
-    BATCH_SIZE = 16
+    BATCH_SIZE = 8
     LEARNING_RATE = 1e-4
-    EPOCHS = 100
+    EPOCHS = 10
+    NB_SAMPLES = 10000
+    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    BETAS = [0.9, 0.999]
 
     @staticmethod
     def display():
@@ -35,6 +40,9 @@ class Config:
         print("\nTraining Settings:")
         print(f"  Batch Size: {Config.BATCH_SIZE}")
         print(f"  Learning Rate: {Config.LEARNING_RATE}")
+        print(f"  Betas: {Config.BETAS}")
         print(f"  Epochs: {Config.EPOCHS}")
+        print(f"  Nb samples: {Config.NB_SAMPLES}")
+        print(f"  Device: {Config.DEVICE}")
 
 

@@ -48,4 +48,4 @@ class MLS:
         padded_audio = torch.stack([
             torch.nn.functional.pad(a, (0, max_length - a.size(-1))) for a in audio
         ])
-        return {"audio": padded_audio, "text": model_inputs, "labels": torch.stack(labels)}
+        return {"audio": padded_audio, "text": model_inputs, "labels": torch.stack(labels).long()}
