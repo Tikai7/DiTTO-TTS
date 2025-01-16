@@ -1,6 +1,13 @@
 import torch
 
+
 class Config:
+    """
+        This is a CONFIG File for training our model on the following computer :
+            - RTX 3080 10GB
+            - i7-10700 CPU @ 2.90GHz
+            - 32gb RAM
+    """
     # Audio settings
     SAMPLE_RATE = 24000  # Hz
     MIN_AUDIO_DURATION = 10  # seconds
@@ -24,8 +31,8 @@ class Config:
     BETAS = [0.9, 0.999]
 
     # Data settings 
-    TRAIN_PATH = "C:/Cours-Sorbonne/M2/UE_DEEP/AMAL/Projet/data/mls_french_opus/mls_french_opus/train"
-    TEST_PATH = "C:/Cours-Sorbonne/M2/UE_DEEP/AMAL/Projet/data/mls_french_opus/mls_french_opus/test"
+    TRAIN_PATH = "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/train"
+    TEST_PATH = "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/test"
     TRAIN_RATIO = 0.8
     VAL_RATIO = 0.2
 
