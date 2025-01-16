@@ -42,8 +42,12 @@ class SLP(nn.Module):
         Returns:
             Tensor: Predicted distribution over audio lengths for each input in the batch.
         """
+
         z_text = self.text_encoder(text)
+        print(z_text.shape)
+        print(audio.shape)
         z_audio = self.audio_encoder(audio)
+        print(z_audio.shape)
         z_audio = z_audio.view(z_audio.size(0), -1, z_audio.size(-1))  # Combine codebook et temporal length
 
         tgt_mask = self.generate_causal_mask(z_audio.size(1), z_audio.device)

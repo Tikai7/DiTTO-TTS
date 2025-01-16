@@ -120,16 +120,18 @@ class Trainer:
             text = {key: val.to(self.device) for key, val in batch["text"].items()}
             audio = batch["audio"].to(self.device)
             labels = batch["label"].to(self.device)
+
             output = self.model(text, audio)
             loss = self.criterion(output, labels)
             losses += loss.item()
+
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
+
             predictions = torch.argmax(output, dim=1)
             all_labels.extend(labels.cpu().tolist())
             all_predictions.extend(predictions.cpu().tolist())
-            print(f"[DEBUG] Batch Loss: {loss.item()}")
 
         metrics = self.__compute_metrics(all_labels, all_predictions)
         return losses / len(train_loader), metrics
@@ -146,13 +148,14 @@ class Trainer:
                 text = {key: val.to(self.device) for key, val in batch["text"].items()}
                 audio = batch["audio"].to(self.device)
                 labels = batch["label"].to(self.device)
+
                 output = self.model(text, audio)
                 loss = self.criterion(output, labels)
                 losses += loss.item()
+
                 predictions = torch.argmax(output, dim=1)
                 all_labels.extend(labels.cpu().tolist())
                 all_predictions.extend(predictions.cpu().tolist())
-                print(f"[DEBUG] Batch Loss: {loss.item()}")
 
         metrics = self.__compute_metrics(all_labels, all_predictions)
         return losses / len(val_loader), metrics

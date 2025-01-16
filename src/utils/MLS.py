@@ -107,5 +107,5 @@ class MLSDataset(Dataset):
         labels = torch.stack([item["label"] for item in batch])
         audio_padded = pad_sequence(audio, batch_first=True)
 
-        return {"audio": audio_padded, "text": text, "label": labels}
+        return {"audio": audio_padded.unsqueeze(1), "text": text, "label": labels}
 
