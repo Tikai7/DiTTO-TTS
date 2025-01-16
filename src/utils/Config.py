@@ -7,7 +7,7 @@ class Config:
     MAX_AUDIO_DURATION = 20  # seconds
     
     # Text settings 
-    MAX_TOKEN_LENGTH = 512
+    MAX_TOKEN_LENGTH = 128
 
     # Model settings
     MODEL_NAME = "DiTTO-TTS"  # Replace with your model's name
