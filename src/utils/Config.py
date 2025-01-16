@@ -7,7 +7,7 @@ class Config:
     MAX_AUDIO_DURATION = 20  # seconds
     
     # Text settings 
-    MAX_TOKEN = 512
+    MAX_TOKEN_LENGTH = 512
 
     # Model settings
     MODEL_NAME = "DiTTO-TTS"  # Replace with your model's name
@@ -23,6 +23,12 @@ class Config:
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     BETAS = [0.9, 0.999]
 
+    # Data settings 
+    TRAIN_PATH = "C:/Cours-Sorbonne/M2/UE_DEEP/AMAL/Projet/data/mls_french_opus/mls_french_opus/train"
+    TEST_PATH = "C:/Cours-Sorbonne/M2/UE_DEEP/AMAL/Projet/data/mls_french_opus/mls_french_opus/test"
+    TRAIN_RATIO = 0.8
+    VAL_RATIO = 0.2
+
     @staticmethod
     def display():
         """Display the current configuration."""
@@ -31,7 +37,7 @@ class Config:
         print(f"  Min Audio Duration: {Config.MIN_AUDIO_DURATION} seconds")
         print(f"  Max Audio Duration: {Config.MAX_AUDIO_DURATION} seconds")
         print("\nText Settings:")
-        print(f"  Max Token : {Config.MAX_TOKEN} tokens")
+        print(f"  Max Token : {Config.MAX_TOKEN_LENGTH} tokens")
         print("\nModel Settings:")
         print(f"  Model Name: {Config.MODEL_NAME}")
         print(f"  Embedding Dim: {Config.EMBEDDING_DIM}")
@@ -44,5 +50,10 @@ class Config:
         print(f"  Epochs: {Config.EPOCHS}")
         print(f"  Nb samples: {Config.NB_SAMPLES}")
         print(f"  Device: {Config.DEVICE}")
+        print("\nData Settings:")
+        print(f"  Train ratio: {Config.TRAIN_RATIO}")
+        print(f"  Val ratio: {Config.VAL_RATIO}")
+        print(f"  Train path: {Config.TRAIN_PATH}")
+        print(f"  Test path: {Config.TEST_PATH}")
 
 
