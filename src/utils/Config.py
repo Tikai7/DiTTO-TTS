@@ -33,8 +33,8 @@ class Config:
     # Data settings 
     TRAIN_PATH = "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/train"
     TEST_PATH = "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/test"
-    TRAIN_RATIO = 0.8
-    VAL_RATIO = 0.2
+    DEV_PATH = "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/dev"
+
 
     @staticmethod
     def display():
@@ -58,9 +58,10 @@ class Config:
         print(f"  Nb samples: {Config.NB_SAMPLES}")
         print(f"  Device: {Config.DEVICE}")
         print("\nData Settings:")
-        print(f"  Train ratio: {Config.TRAIN_RATIO}")
-        print(f"  Val ratio: {Config.VAL_RATIO}")
         print(f"  Train path: {Config.TRAIN_PATH}")
-        print(f"  Test path: {Config.TEST_PATH}")
+        print(f"  Test path: {Config.TEST_PATH}")        
+        print(f"  Dev path: {Config.DEV_PATH}")
+
+
 
 
