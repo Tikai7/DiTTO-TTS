@@ -3,8 +3,6 @@ import os
 from tqdm import tqdm
 from sklearn.metrics import accuracy_score
 from datetime import datetime
-from utils import Config
-
 class Trainer:
     """
     Trainer class to train basic model with checkpoint support
@@ -66,7 +64,7 @@ class Trainer:
         best_loss = 0
         os.makedirs(checkpoint_dir, exist_ok=True)
 
-        for epoch in range(start_epoch, epochs):
+        for epoch in tqdm(range(start_epoch, epochs)):
             train_loss, train_metrics = self.__train(train_data)
             val_loss, val_metrics = self.__validate(validation_data)
 
@@ -119,9 +117,9 @@ class Trainer:
         all_predictions = []
 
         for batch in train_loader:
-            text = {key: val.to(Config.DEVICE) for key, val in batch["text"].items()}
-            audio = batch["audio"].to(Config.DEVICE)
-            labels = batch["label"].to(Config.DEVICE)
+            text = {key: val.to(self.device) for key, val in batch["text"].items()}
+            audio = batch["audio"].to(self.device)
+            labels = batch["label"].to(self.device)
             output = self.model(text, audio)
             loss = self.criterion(output, labels)
             losses += loss.item()
@@ -145,9 +143,9 @@ class Trainer:
 
         with torch.no_grad():
             for batch in val_loader:
-                text = {key: val.to(Config.DEVICE) for key, val in batch["text"].items()}
-                audio = batch["audio"].to(Config.DEVICE)
-                labels = batch["label"].to(Config.DEVICE)
+                text = {key: val.to(self.device) for key, val in batch["text"].items()}
+                audio = batch["audio"].to(self.device)
+                labels = batch["label"].to(self.device)
                 output = self.model(text, audio)
                 loss = self.criterion(output, labels)
                 losses += loss.item()
