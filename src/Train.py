@@ -12,6 +12,10 @@ from torch.utils.data import DataLoader, random_split
 
 print(Config.display())
 
+# No need on windows
+# Processing.remove_metadata_from_audio_folder(Config.TRAIN_PATH+"/"+"audio", Config.TRAIN_PATH+"/"+"audio_clean",)
+# Processing.remove_metadata_from_audio_folder(Config.TEST_PATH+"/"+"audio", Config.TEST_PATH+"/"+"audio_clean",)
+# Processing.remove_metadata_from_audio_folder(Config.DEV_PATH+"/"+"audio", Config.DEV_PATH+"/"+"audio_clean",)
 
 dataset = MLSDataset(
     data_dir=Config.TRAIN_PATH,

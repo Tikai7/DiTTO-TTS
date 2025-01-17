@@ -2,7 +2,7 @@ import os
 import json
 import torch
 import torchaudio
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from transformers import AutoProcessor, AutoTokenizer
 from torch.nn.utils.rnn import pad_sequence
 from tqdm import tqdm 
@@ -18,7 +18,7 @@ class MLSDataset(Dataset):
             sampling_rate (int): Audio sampling rate.
         """
         self.data_dir = data_dir
-        self.audio_dir = os.path.join(data_dir, "audio")  # Directory containing audio files (.opus)
+        self.audio_dir = os.path.join(data_dir, "audio_clean")  # Directory containing clean audio files  (.opus)
         self.transcripts_file = os.path.join(data_dir, "transcripts.txt").replace('\\','/')  # Transcription file
         self.tokenized_file = os.path.join(data_dir, "tokenized_transcripts.json")
         self.sampling_rate = sampling_rate
@@ -43,18 +43,26 @@ class MLSDataset(Dataset):
         audio_path, tokenized_text, duration = self.data[idx]
 
         # Load audio
-        waveform, sr = torchaudio.load(audio_path)
-        if sr != self.sampling_rate:
-            resampler = torchaudio.transforms.Resample(orig_freq=sr, new_freq=self.sampling_rate)
-            waveform = resampler(waveform)
+        try:
+            print(f"Trying to load: {audio_path}")
+            waveform, sr = torchaudio.load(audio_path)
+            if sr != self.sampling_rate:
+                resampler = torchaudio.transforms.Resample(orig_freq=sr, new_freq=self.sampling_rate)
+                waveform = resampler(waveform)
+            print(f"Loaded audio: {audio_path}, Sample rate: {sr}")
+        except UnicodeDecodeError as e:
+            print(f"[ERROR] UnicodeDecodeError for {audio_path}: {e}")
+        except Exception as e:
+            print(f"[ERROR] Failed to process {audio_path}: {e}")
 
+        
         # Process audio
         processed_audio = self.processor(
             raw_audio=waveform.squeeze().numpy(), sampling_rate=self.sampling_rate, return_tensors="pt"
         )["input_values"].squeeze(0)
-        
-        duration = waveform.size(-1) / self.sampling_rate
 
+        duration = waveform.size(-1) / self.sampling_rate
+        
         return {
             "audio": processed_audio,
             "text": tokenized_text,
@@ -104,7 +112,7 @@ class MLSDataset(Dataset):
     def __load_tokenized_data(self):
         """Load pre-saved tokenized transcripts."""
         print("Loading tokenized transcripts...")
-        with open(self.tokenized_file, "r", encoding="utf-8") as f:
+        with open(self.tokenized_file, "r", encoding="utf-8", errors="replace") as f:
             data = json.load(f)
         # Convert tokenized text back to tensors
         return [(d[0], {k: torch.tensor(v) for k, v in d[1].items()}, d[2]) for d in data]
@@ -118,3 +126,4 @@ class MLSDataset(Dataset):
         audio_padded = pad_sequence(audio, batch_first=True)
 
         return {"audio": audio_padded.unsqueeze(1), "text": text, "label": labels}
+        
