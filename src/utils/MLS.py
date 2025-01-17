@@ -52,6 +52,8 @@ class MLSDataset(Dataset):
         processed_audio = self.processor(
             raw_audio=waveform.squeeze().numpy(), sampling_rate=self.sampling_rate, return_tensors="pt"
         )["input_values"].squeeze(0)
+        
+        duration = waveform.size(-1) / self.sampling_rate
 
         return {
             "audio": processed_audio,
