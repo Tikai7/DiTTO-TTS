@@ -117,7 +117,7 @@ class Trainer:
         all_predictions = []
 
         for batch in tqdm(train_loader):
-            text = {key: val.to(self.device) for key, val in batch["text"].items()}
+            text = batch["text"].to(self.device)
             audio = batch["audio"].to(self.device)
             labels = batch["label"].to(self.device)
 
@@ -145,7 +145,7 @@ class Trainer:
 
         with torch.no_grad():
             for batch in tqdm(val_loader):
-                text = {key: val.to(self.device) for key, val in batch["text"].items()}
+                text = batch["text"].to(self.device)
                 audio = batch["audio"].to(self.device)
                 labels = batch["label"].to(self.device)
 
