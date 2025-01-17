@@ -1,6 +1,7 @@
 import subprocess
 import os
 from tqdm import tqdm
+from Config import Config
 
 class Processing:
 
@@ -34,3 +35,9 @@ class Processing:
                         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     except subprocess.CalledProcessError as e:
                         print(f"Error processing {input_file}: {e}")
+
+
+if __name__ == "__main__":
+    Processing.remove_metadata_from_audio_folder(Config.TRAIN_PATH+"/"+"audio", Config.TRAIN_PATH+"/"+"audio_clean",)
+    Processing.remove_metadata_from_audio_folder(Config.TEST_PATH+"/"+"audio", Config.TEST_PATH+"/"+"audio_clean",)
+    Processing.remove_metadata_from_audio_folder(Config.DEV_PATH+"/"+"audio", Config.DEV_PATH+"/"+"audio_clean",)
