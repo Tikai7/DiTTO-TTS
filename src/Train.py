@@ -7,7 +7,7 @@ from utils.Config import Config
 from utils.MLS import MLSDataset
 from utils.Trainer import Trainer
 
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 
 
 print(Config.display())
@@ -17,18 +17,32 @@ print(Config.display())
 # Processing.remove_metadata_from_audio_folder(Config.TEST_PATH+"/"+"audio", Config.TEST_PATH+"/"+"audio_clean",)
 # Processing.remove_metadata_from_audio_folder(Config.DEV_PATH+"/"+"audio", Config.DEV_PATH+"/"+"audio_clean",)
 
-dataset = MLSDataset(
+train_set = MLSDataset(
     data_dir=Config.TRAIN_PATH,
     max_text_token_length=Config.MAX_TOKEN_LENGTH,
     sampling_rate=Config.SAMPLE_RATE,
 )
 
-train_set, val_set = random_split(dataset, [Config.TRAIN_RATIO, Config.VAL_RATIO])
+val_set = MLSDataset(
+    data_dir=Config.DEV_PATH,
+    max_text_token_length=Config.MAX_TOKEN_LENGTH,
+    sampling_rate=Config.SAMPLE_RATE,
+)
+
+
+test_set = MLSDataset(
+    data_dir=Config.TEST_PATH,
+    max_text_token_length=Config.MAX_TOKEN_LENGTH,
+    sampling_rate=Config.SAMPLE_RATE,
+)
 
 train_loader = DataLoader(train_set, batch_size=Config.BATCH_SIZE, shuffle=True, collate_fn=MLSDataset.collate_fn)
 val_loader = DataLoader(val_set, batch_size=Config.BATCH_SIZE, shuffle=True, collate_fn=MLSDataset.collate_fn)
+test_loader = DataLoader(test_set, batch_size=Config.BATCH_SIZE, shuffle=True, collate_fn=MLSDataset.collate_fn)
 
-model = SLP(Config.MAX_AUDIO_DURATION, Config.NHEAD ,Config.NUM_LAYERS).to(Config.DEVICE)
+
+model = SLP(Config.NB_CLASSES, Config.NHEAD ,Config.NUM_LAYERS)
+model = model.to(Config.DEVICE)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW
 
