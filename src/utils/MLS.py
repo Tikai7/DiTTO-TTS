@@ -43,17 +43,10 @@ class MLSDataset(Dataset):
         audio_path, tokenized_text, duration = self.data[idx]
 
         # Load audio
-        try:
-            print(f"Trying to load: {audio_path}")
-            waveform, sr = torchaudio.load(audio_path)
-            if sr != self.sampling_rate:
-                resampler = torchaudio.transforms.Resample(orig_freq=sr, new_freq=self.sampling_rate)
-                waveform = resampler(waveform)
-            print(f"Loaded audio: {audio_path}, Sample rate: {sr}")
-        except UnicodeDecodeError as e:
-            print(f"[ERROR] UnicodeDecodeError for {audio_path}: {e}")
-        except Exception as e:
-            print(f"[ERROR] Failed to process {audio_path}: {e}")
+        waveform, sr = torchaudio.load(audio_path)
+        if sr != self.sampling_rate:
+            resampler = torchaudio.transforms.Resample(orig_freq=sr, new_freq=self.sampling_rate)
+            waveform = resampler(waveform)
 
         
         # Process audio
@@ -62,7 +55,13 @@ class MLSDataset(Dataset):
         )["input_values"].squeeze(0)
 
         duration = waveform.size(-1) / self.sampling_rate
-        
+        if not (10 <= duration <= 20):
+            print(duration)
+            raise ValueError(f"Duration {duration} out of bounds for index {idx}")
+
+        duration = int(duration - 10)  # Shift duration to [0, 10]
+        assert 0 <= duration <= 10, f"Mapped target {duration} out of bounds"
+
         return {
             "audio": processed_audio,
             "text": tokenized_text,

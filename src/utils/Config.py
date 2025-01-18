@@ -14,7 +14,7 @@ class Config:
     MAX_AUDIO_DURATION = 20  # seconds
     
     # Text settings 
-    MAX_TOKEN_LENGTH = 64
+    MAX_TOKEN_LENGTH = 128
 
     # Model settings
     MODEL_NAME = "DiTTO-TTS"  # Replace with your model's name
@@ -28,7 +28,9 @@ class Config:
     EPOCHS = 10
     NB_SAMPLES = 10000
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    # DEVICE = "cpu"
     BETAS = [0.9, 0.999]
+    NB_CLASSES = int(MAX_AUDIO_DURATION-MIN_AUDIO_DURATION + 1)
 
     # Data settings 
     # TRAIN_PATH = "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/train"
@@ -59,6 +61,7 @@ class Config:
         print(f"  Betas: {Config.BETAS}")
         print(f"  Epochs: {Config.EPOCHS}")
         print(f"  Nb samples: {Config.NB_SAMPLES}")
+        print(f"  Nb classes: {Config.NB_CLASSES}")
         print(f"  Device: {Config.DEVICE}")
         print("\nData Settings:")
         print(f"  Train path: {Config.TRAIN_PATH}")
