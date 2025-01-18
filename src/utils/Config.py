@@ -14,7 +14,7 @@ class Config:
     MAX_AUDIO_DURATION = 20  # seconds
     
     # Text settings 
-    MAX_TOKEN_LENGTH = 64
+    MAX_TOKEN_LENGTH = 128
 
     # Model settings
     MODEL_NAME = "DiTTO-TTS"  # Replace with your model's name
@@ -23,7 +23,7 @@ class Config:
     NHEAD = 1  # Number of attention heads
 
     # Training settings
-    BATCH_SIZE = 8
+    BATCH_SIZE = 4
     LEARNING_RATE = 1e-4
     EPOCHS = 10
     NB_SAMPLES = 10000

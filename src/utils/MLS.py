@@ -43,17 +43,10 @@ class MLSDataset(Dataset):
         audio_path, tokenized_text, duration = self.data[idx]
 
         # Load audio
-        try:
-            print(f"Trying to load: {audio_path}")
-            waveform, sr = torchaudio.load(audio_path)
-            if sr != self.sampling_rate:
-                resampler = torchaudio.transforms.Resample(orig_freq=sr, new_freq=self.sampling_rate)
-                waveform = resampler(waveform)
-            print(f"Loaded audio: {audio_path}, Sample rate: {sr}")
-        except UnicodeDecodeError as e:
-            print(f"[ERROR] UnicodeDecodeError for {audio_path}: {e}")
-        except Exception as e:
-            print(f"[ERROR] Failed to process {audio_path}: {e}")
+        waveform, sr = torchaudio.load(audio_path)
+        if sr != self.sampling_rate:
+            resampler = torchaudio.transforms.Resample(orig_freq=sr, new_freq=self.sampling_rate)
+            waveform = resampler(waveform)
 
         
         # Process audio
