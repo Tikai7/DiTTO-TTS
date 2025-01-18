@@ -55,7 +55,12 @@ class MLSDataset(Dataset):
         )["input_values"].squeeze(0)
 
         duration = waveform.size(-1) / self.sampling_rate
-        
+        if not (10 <= duration <= 20):
+            print(duration)
+            raise ValueError(f"Duration {duration} out of bounds for index {idx}")
+
+        duration = int(duration - 10)  # Shift duration to [0, 10]
+
         return {
             "audio": processed_audio,
             "text": tokenized_text,

@@ -3,6 +3,7 @@ import os
 from tqdm import tqdm
 from sklearn.metrics import accuracy_score
 from datetime import datetime
+
 class Trainer:
     """
     Trainer class to train basic model with checkpoint support
@@ -13,6 +14,7 @@ class Trainer:
         self.optimizer = None
         self.criterion = None
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        # self.device = "cpu"
 
         self.history = {
             "params": {
@@ -51,7 +53,6 @@ class Trainer:
         assert self.optimizer is not None, "[ERROR] set the optimizer first through .set_optimizer()"
         assert self.criterion is not None, "[ERROR] set the loss function first through .set_criterion()"
         
-        self.model.train()
         self.optimizer = self.optimizer(self.model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         
         self.history["params"]["lr"] = learning_rate
@@ -64,7 +65,7 @@ class Trainer:
         best_loss = 0
         os.makedirs(checkpoint_dir, exist_ok=True)
 
-        for epoch in tqdm(range(start_epoch, epochs)):
+        for epoch in range(start_epoch, epochs):
             train_loss, train_metrics = self.__train(train_data)
             val_loss, val_metrics = self.__validate(validation_data)
 
@@ -115,8 +116,12 @@ class Trainer:
         losses = 0
         all_labels = []
         all_predictions = []
+        self.model.train()
 
         for batch in tqdm(train_loader):
+            batch["text"]["input_ids"] = batch["text"]["input_ids"].to(self.device)
+            batch["text"]["attention_mask"] = batch["text"]["attention_mask"].to(self.device)
+
             text = batch["text"]
             audio = batch["audio"].to(self.device)
             labels = batch["label"].to(self.device)
@@ -124,7 +129,6 @@ class Trainer:
             output = self.model(text, audio)
             loss = self.criterion(output, labels)
             losses += loss.item()
-
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
@@ -145,12 +149,14 @@ class Trainer:
 
         with torch.no_grad():
             for batch in tqdm(val_loader):
+                batch["text"]["input_ids"] = batch["text"]["input_ids"].to(self.device)
+                batch["text"]["attention_mask"] = batch["text"]["attention_mask"].to(self.device)
+
                 text = batch["text"]
                 audio = batch["audio"].to(self.device)
                 labels = batch["label"].to(self.device)
 
                 output = self.model(text, audio)
-                print(output.shape, labels.shape)
                 loss = self.criterion(output, labels)
                 losses += loss.item()
 

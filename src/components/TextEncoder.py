@@ -12,7 +12,6 @@ class ByT5(nn.Module):
     def __init__(self):
         super().__init__()
         self.model = T5EncoderModel.from_pretrained("google/byt5-small")
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
     def forward(self, X):
         """
@@ -26,8 +25,8 @@ class ByT5(nn.Module):
                     representing contextual embeddings for each token.
         """
         outputs = self.model(
-            input_ids=X["input_ids"].to(self.device), 
-            attention_mask=X["attention_mask"].to(self.device), 
+            input_ids=X["input_ids"], 
+            attention_mask=X["attention_mask"], 
         )
         
         # Return the embeddings from the last hidden state of the encoder

@@ -46,7 +46,7 @@ class SLP(nn.Module):
         z_text = self.text_encoder(text)
         z_audio = self.audio_encoder(audio)
         z_audio = z_audio.view(z_audio.size(0), -1, z_audio.size(-1))  # Combine codebook et temporal length
-
+        
         tgt_mask = self.generate_causal_mask(z_audio.size(1), z_audio.device)
 
         # Transformer Decoder to apply cross-attention between audio and text embeddings
@@ -54,7 +54,6 @@ class SLP(nn.Module):
 
         # Use the last token's embedding to predict the audio length
         lengths = self.length_predictor(z_audio_decoded[:, -1, :])
-
         return lengths
 
     @staticmethod
