@@ -30,7 +30,7 @@ class Config:
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     # DEVICE = "cpu"
     BETAS = [0.9, 0.999]
-    NB_CLASSES = int(MAX_AUDIO_DURATION-MIN_AUDIO_DURATION)
+    NB_CLASSES = int(MAX_AUDIO_DURATION-MIN_AUDIO_DURATION + 1)
 
     # Data settings 
     TRAIN_PATH = "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/train"

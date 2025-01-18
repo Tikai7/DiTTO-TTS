@@ -60,6 +60,7 @@ class MLSDataset(Dataset):
             raise ValueError(f"Duration {duration} out of bounds for index {idx}")
 
         duration = int(duration - 10)  # Shift duration to [0, 10]
+        assert 0 <= duration <= 10, f"Mapped target {duration} out of bounds"
 
         return {
             "audio": processed_audio,

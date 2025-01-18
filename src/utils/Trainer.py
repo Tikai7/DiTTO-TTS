@@ -127,6 +127,11 @@ class Trainer:
             labels = batch["label"].to(self.device)
 
             output = self.model(text, audio)
+
+            assert labels.min() >= 0, f"Invalid label found: {labels.min()}"
+            assert labels.max() < output.size(-1), f"Invalid label found: {labels.max()}"
+
+
             loss = self.criterion(output, labels)
             losses += loss.item()
             self.optimizer.zero_grad()
