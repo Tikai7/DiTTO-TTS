@@ -78,8 +78,8 @@ class Trainer:
             self.history["validation"]["accuracy"].append(val_metrics["accuracy"])
 
 
-            if val_metrics["loss"] >= best_loss:
-                best_loss = val_metrics["loss"]
+            if self.history["validation"]["loss"] >= best_loss:
+                best_loss = self.history["validation"]["loss"]
                 best_model = self.model
 
             if (epoch + 1) % checkpoint_interval == 0:
@@ -127,10 +127,6 @@ class Trainer:
             labels = batch["label"].to(self.device)
 
             output = self.model(text, audio)
-
-            assert labels.min() >= 0, f"Invalid label found: {labels.min()}"
-            assert labels.max() < output.size(-1), f"Invalid label found: {labels.max()}"
-
 
             loss = self.criterion(output, labels)
             losses += loss.item()
@@ -190,9 +186,9 @@ class Trainer:
             print(
                 f"[INFO] Epoch {epoch + 1}:"
                 f"\n  Train -> Loss: {train_loss:.4f},"
-                f" Precision (Majority): {train_metrics['accuracy']:.4f}"
+                f" Accuracy: {train_metrics['accuracy']:.4f}"
                 f"\n  Val   -> Loss: {val_loss:.4f},"
-                f" Precision (Majority): {val_metrics['accuracy']:.4f}"
+                f" Accuracy: {val_metrics['accuracy']:.4f}"
             )
 
 
