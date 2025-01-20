@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from transformers import EncodecModel, AutoProcessor
+from transformers import EncodecModel
 
 class EnCodec(nn.Module):
     """
@@ -14,7 +14,9 @@ class EnCodec(nn.Module):
         super().__init__()
         self.model = EncodecModel.from_pretrained("facebook/encodec_24khz")
         self.embedding_head = nn.Embedding(self.model.config.codebook_size, hidden_size) 
-
+        for param in self.audio_encoder.parameters():
+            param.requires_grad = False
+            
     def forward(self, X):
         """
         Forward pass to process raw audio input and produce latent embeddings.
