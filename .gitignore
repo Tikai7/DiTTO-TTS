@@ -4,3 +4,4 @@
 .venv2
 /__pycache__
 /src/checkpoints
+*.pth
