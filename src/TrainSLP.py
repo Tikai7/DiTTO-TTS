@@ -21,6 +21,7 @@ train_set = MLSDataset(
     data_dir=Config.TRAIN_PATH,
     max_text_token_length=Config.MAX_TOKEN_LENGTH,
     sampling_rate=Config.SAMPLE_RATE,
+    nb_samples=Config.NB_SAMPLES
 )
 
 val_set = MLSDataset(
