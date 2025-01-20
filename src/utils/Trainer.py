@@ -14,6 +14,8 @@ class Trainer:
         self.optimizer = None
         self.criterion = None
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.__custom_train = None
+        self.__custom_validation = None
         # self.device = "cpu"
 
         self.history = {
@@ -47,6 +49,15 @@ class Trainer:
     def set_optimizer(self, optimizer):
         self.optimizer = optimizer
         return self
+    
+    def set_custom_functions(self, train_func, validation_func):
+        """
+            Train and Validation function have to return at least (loss, metrics)
+            With metrics having "accuracy" key at least
+        """
+        self.__custom_train = train_func
+        self.__custom_validation = validation_func
+        return self
 
     def fit(self, train_data, validation_data=None, learning_rate=1e-4, epochs=1, verbose=True, weight_decay=1e-6, checkpoint_interval=5, checkpoint_dir="checkpoints", checkpoint_path="checkpoint_epoch_1.pth"):
         assert self.model is not None, "[ERROR] set or load the model first through .set_model() or .load_model()"
@@ -66,8 +77,8 @@ class Trainer:
         os.makedirs(checkpoint_dir, exist_ok=True)
 
         for epoch in range(start_epoch, epochs):
-            train_loss, train_metrics = self.__train(train_data)
-            val_loss, val_metrics = self.__validate(validation_data)
+            train_loss, train_metrics = self.__train(train_data) if self.__custom_train is None else self.__custom_train(train_data)
+            val_loss, val_metrics = self.__validate(validation_data) if self.__custom_validation is None  else  self.__custom_validation(validation_data)
 
             self.__print_epoch(epoch, train_loss, train_metrics, val_loss, val_metrics, verbose)
 

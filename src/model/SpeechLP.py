@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from components.NeuralCodec import EnCodec
-from components.TextEncoder import ByT5
+from components.EnCodec import EnCodec
+from components.ByT5 import ByT5
 
 
 class SLP(nn.Module):
@@ -45,19 +45,9 @@ class SLP(nn.Module):
 
         z_text = self.text_encoder(text)
         z_audio = self.audio_encoder(audio)
-        z_audio = z_audio.view(z_audio.size(0), -1, z_audio.size(-1))  # Combine codebook et temporal length
+        z_audio = z_audio.view(z_audio.size(0), -1, z_audio.size(-1)) 
         
-        tgt_mask = self.generate_causal_mask(z_audio.size(1), z_audio.device)
-
-        # Transformer Decoder to apply cross-attention between audio and text embeddings
-        z_audio_decoded = self.transformer(z_audio, z_text, tgt_mask=tgt_mask)
-
-        # Use the last token's embedding to predict the audio length
+        z_audio_decoded = self.transformer(z_audio, z_text)
         lengths = self.length_predictor(z_audio_decoded[:, -1, :])
-        return lengths
 
-    @staticmethod
-    def generate_causal_mask(size, device):
-        mask = torch.triu(torch.ones(size, size), diagonal=1).bool()
-        mask = mask.to(device)
-        return mask
+        return lengths
