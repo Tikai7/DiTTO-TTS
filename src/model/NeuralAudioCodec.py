@@ -18,11 +18,11 @@ class NeuralAudioCodec(nn.Module):
         self.lambda_factor = lambda_factor
 
         print(f"[INFO] GPT2 Embedding dim : {self.language_model.config.n_embd}")
-        
+
         for param in self.audio_decoder.parameters():
             param.requires_grad = False
 
-    def forward(self, audio_input, text_input):
+    def forward(self, text_input, audio_input):
         audio_latents = self.audio_encoder(audio_input)
 
         with torch.no_grad():
@@ -36,7 +36,7 @@ class NeuralAudioCodec(nn.Module):
         return {
             "reconstructed_audio" : reconstructed_audio, 
             "audio_latents" : audio_latents, 
-            "alignment_loss": alignment_loss
+            "alignment_loss" : alignment_loss
         }
 
     def compute_total_loss(self, reconstruction_loss, alignment_loss):

@@ -7,6 +7,7 @@ from utils.Config import Config
 from utils.MLS import MLSDataset
 from utils.Trainer import Trainer
 
+from tqdm import tqdm
 from torch.utils.data import DataLoader
 
 
@@ -46,10 +47,58 @@ model = model.to(Config.DEVICE)
 criterion = nn.MSELoss()
 optimizer = torch.optim.AdamW
 
+
+def train(self, train_loader):
+    losses = 0
+    self.model.train()
+
+    for batch in tqdm(train_loader):
+        batch["text"]["input_ids"] = batch["text"]["input_ids"].to(self.device)
+        batch["text"]["attention_mask"] = batch["text"]["attention_mask"].to(self.device)
+
+        text = batch["text"]
+        audio = batch["audio"].to(self.device)
+
+        output = self.model(text, audio)
+
+        reconstructed_audio = output["reconstructed_audio"]
+        alignement_loss = output["alignment_loss"]
+
+        reconstruction_loss = self.criterion(reconstructed_audio, audio)
+        loss = self.compute_total_loss(reconstruction_loss, alignement_loss)
+
+        losses += loss.item()
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+    return losses / len(train_loader), {"accuracy" : -1}
+
+def validation(self, validation_loader):
+    losses = 0
+    self.model.eval()
+
+    for batch in tqdm(validation_loader):
+        batch["text"]["input_ids"] = batch["text"]["input_ids"].to(self.device)
+        batch["text"]["attention_mask"] = batch["text"]["attention_mask"].to(self.device)
+        text = batch["text"]
+        audio = batch["audio"].to(self.device)
+        output = self.model(text, audio)
+        reconstructed_audio = output["reconstructed_audio"]
+        alignement_loss = output["alignment_loss"]
+        reconstruction_loss = self.criterion(reconstructed_audio, audio)
+        loss = self.compute_total_loss(reconstruction_loss, alignement_loss)
+        losses += loss.item()
+
+    return losses / len(train_loader), {"accuracy" : -1}
+
+
+
 trainer = Trainer()
 trainer.set_model(model, name="NAC")\
     .set_criterion(criterion)\
     .set_optimizer(optimizer)\
+    .set_custom_functions(train_func=train, validation_func=validation)\
     .fit(
         train_data=train_loader, validation_data=val_loader, 
         epochs=Config.EPOCHS, learning_rate=Config.LEARNING_RATE, checkpoint_interval=1        

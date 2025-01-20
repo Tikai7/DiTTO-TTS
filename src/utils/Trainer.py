@@ -51,8 +51,13 @@ class Trainer:
         return self
     
     def set_custom_functions(self, train_func, validation_func):
+        """
+            Train and Validation function have to return at least (loss, metrics)
+            With metrics having "accuracy" key at least
+        """
         self.__custom_train = train_func
         self.__custom_validation = validation_func
+        return self
 
     def fit(self, train_data, validation_data=None, learning_rate=1e-4, epochs=1, verbose=True, weight_decay=1e-6, checkpoint_interval=5, checkpoint_dir="checkpoints", checkpoint_path="checkpoint_epoch_1.pth"):
         assert self.model is not None, "[ERROR] set or load the model first through .set_model() or .load_model()"
@@ -93,7 +98,7 @@ class Trainer:
 
         self.model = best_model
         self.__save(checkpoint_dir=checkpoint_dir)
-        
+
         return self.model, self.history
 
     def __save_checkpoint(self, checkpoint_dir, epoch):
