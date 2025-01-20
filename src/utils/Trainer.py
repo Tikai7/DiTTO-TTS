@@ -78,8 +78,8 @@ class Trainer:
             self.history["validation"]["accuracy"].append(val_metrics["accuracy"])
 
 
-            if self.history["validation"]["loss"] >= best_loss:
-                best_loss = self.history["validation"]["loss"]
+            if self.history["validation"]["loss"][-1] <= best_loss:
+                best_loss = self.history["validation"]["loss"][-1]
                 best_model = self.model
 
             if (epoch + 1) % checkpoint_interval == 0:
