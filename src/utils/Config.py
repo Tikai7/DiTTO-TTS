@@ -19,7 +19,7 @@ class Config:
     # Model settings
     MODEL_NAME = "DiTTO-TTS"  # Replace with your model's name
     EMBEDDING_DIM = 1472  # Audio embedding dimension
-    NUM_LAYERS = 4  # Number of model layers
+    NUM_LAYERS = 1  # Number of model layers
     NHEAD = 1  # Number of attention heads
 
     # Training settings
