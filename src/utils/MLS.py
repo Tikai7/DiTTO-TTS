@@ -8,7 +8,7 @@ from torch.nn.utils.rnn import pad_sequence
 from tqdm import tqdm 
 
 class MLSDataset(Dataset):
-    def __init__(self, data_dir, max_text_token_length, sampling_rate=24000):
+    def __init__(self, data_dir, max_text_token_length, sampling_rate=24000, nb_samples=None):
         """
         MLS Dataset for loading audio files and their corresponding transcripts.
 
@@ -33,6 +33,9 @@ class MLSDataset(Dataset):
             self.data = self.__load_tokenized_data()
         else:
             self.data = self.__preprocess_and_save_data()
+
+        if nb_samples is not None :
+            self.data = self.data[:nb_samples]
 
     def __len__(self):
         """Returns the size of the dataset."""
