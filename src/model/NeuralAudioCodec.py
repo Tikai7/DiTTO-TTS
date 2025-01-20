@@ -17,6 +17,8 @@ class NeuralAudioCodec(nn.Module):
         self.audio_decoder = EncodecModel.from_pretrained("facebook/encodec_24khz")
         self.lambda_factor = lambda_factor
 
+        print(f"[INFO] GPT2 Embedding dim : {self.language_model.config.n_embd}")
+        
         for param in self.audio_decoder.parameters():
             param.requires_grad = False
 

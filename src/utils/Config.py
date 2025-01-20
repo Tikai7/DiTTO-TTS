@@ -23,6 +23,7 @@ class Config:
     NHEAD = 1  # Number of attention heads
 
     # Training settings
+    LAMBDA_FACTOR = 0.1
     BATCH_SIZE = 4
     LEARNING_RATE = 1e-4
     EPOCHS = 10
@@ -56,6 +57,7 @@ class Config:
         print(f"  Num Layers: {Config.NUM_LAYERS}")
         print(f"  Attention Heads: {Config.NHEAD}")
         print("\nTraining Settings:")
+        print(f"  Lamnda Factor: {Config.LAMBDA_FACTOR}")
         print(f"  Batch Size: {Config.BATCH_SIZE}")
         print(f"  Learning Rate: {Config.LEARNING_RATE}")
         print(f"  Betas: {Config.BETAS}")
