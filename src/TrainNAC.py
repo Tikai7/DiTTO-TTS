@@ -90,7 +90,7 @@ def validation(self, validation_loader):
 
 
 trainer = Trainer()
-trainer.set_model(model, name="NAC")\
+trainer.set_model(model, name=ConfigNAC.MODEL_NAME)\
     .set_criterion(criterion)\
     .set_optimizer(optimizer)\
     .set_custom_functions(train_func=train, validation_func=validation)\

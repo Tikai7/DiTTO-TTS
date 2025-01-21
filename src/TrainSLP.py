@@ -48,7 +48,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW
 
 trainer = Trainer()
-trainer.set_model(model, name="SLP")\
+trainer.set_model(model, name=ConfigSLP.MODEL_NAME)\
     .set_criterion(criterion)\
     .set_optimizer(optimizer)\
     .fit(
