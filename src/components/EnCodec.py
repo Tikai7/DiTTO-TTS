@@ -17,21 +17,23 @@ class EnCodec(nn.Module):
         for param in self.model.parameters():
             param.requires_grad = False
             
-    def forward(self, X):
+    def forward(self, X, padding_mask_audio=None):
         """
         Forward pass to process raw audio input and produce latent embeddings.
 
         Args:
             X (Tensor): Raw audio input (batch of waveforms).
-            sampling_rate (int): Sampling rate of the audio (default: 24000 Hz).
-
         Returns:
-            Tensor: Latent audio embeddings projected to the target dimension.
+            projected_outputs: Latent audio embeddings projected to the target dimension.
+            audio_scales:  Scaling factor for each audio_codes input.
+
         """
         # Gradients are disabled because the model weights are frozen
         with torch.no_grad(): 
-            encoded_outputs = self.model.encode(X)
+            encoded_outputs = self.model.encode(X, padding_mask_audio)
         
         latents = encoded_outputs["audio_codes"].squeeze(0)
+        audio_scales = encoded_outputs["audio_scales"]
         projected_outputs = self.embedding_head(latents)
-        return projected_outputs
+
+        return projected_outputs, audio_scales

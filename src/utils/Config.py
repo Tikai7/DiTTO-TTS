@@ -9,18 +9,20 @@ class BaseConfig:
     MIN_AUDIO_DURATION = 10  # seconds
     MAX_AUDIO_DURATION = 20  # seconds
     
-    # Text settings
-    MAX_TOKEN_LENGTH = 128
-
     # Training settings
-    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    # DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    DEVICE = "cpu"
     BETAS = [0.9, 0.999]
 
     # Data settings
-    TRAIN_PATH = "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/train"
-    TEST_PATH = "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/test"
-    DEV_PATH = "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/dev"
+    # TRAIN_PATH = "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/train"
+    # TEST_PATH = "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/test"
+    # DEV_PATH = "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/dev"
 
+    TRAIN_PATH = "C:/Cours-Sorbonne/M2/UE_DEEP/AMAL/Projet/data/mls_french_opus/mls_french_opus/train"
+    TEST_PATH = "C:/Cours-Sorbonne/M2/UE_DEEP/AMAL/Projet/data/mls_french_opus/mls_french_opus/test"
+    DEV_PATH = "C:/Cours-Sorbonne/M2/UE_DEEP/AMAL/Projet/data/mls_french_opus/mls_french_opus/dev"
+    
     @staticmethod
     def display_common():
         """Display common configuration settings."""
@@ -29,8 +31,6 @@ class BaseConfig:
         print(f"  Sample Rate: {BaseConfig.SAMPLE_RATE} Hz")
         print(f"  Min Audio Duration: {BaseConfig.MIN_AUDIO_DURATION} seconds")
         print(f"  Max Audio Duration: {BaseConfig.MAX_AUDIO_DURATION} seconds")
-        print("\nText Settings:")
-        print(f"  Max Token Length: {BaseConfig.MAX_TOKEN_LENGTH}")
         print("\nTraining Settings:")
         print(f"  Betas: {BaseConfig.BETAS}")
         print(f"  Device: {BaseConfig.DEVICE}")
@@ -49,6 +49,7 @@ class ConfigNAC(BaseConfig):
     EPOCHS = 20
     LEARNING_RATE = 1e-4
     BATCH_SIZE = 8
+    MAX_TOKEN_LENGTH = 1024
 
     @staticmethod
     def display():
@@ -63,6 +64,7 @@ class ConfigNAC(BaseConfig):
         print(f"  Batch Size: {ConfigNAC.BATCH_SIZE}")
         print(f"  Learning Rate: {ConfigNAC.LEARNING_RATE}")
         print(f"  Epochs: {ConfigNAC.EPOCHS}")
+        print(f"  Token length for GPT2: {ConfigNAC.MAX_TOKEN_LENGTH}")
 
 class ConfigSLP(BaseConfig):
     """
@@ -77,6 +79,7 @@ class ConfigSLP(BaseConfig):
     LEARNING_RATE = 1e-4
     BATCH_SIZE = 8
     NB_SAMPLES = 10000
+    MAX_TOKEN_LENGTH = 128
 
     @staticmethod
     def display():
@@ -93,3 +96,4 @@ class ConfigSLP(BaseConfig):
         print(f"  Batch Size: {ConfigSLP.BATCH_SIZE}")
         print(f"  Learning Rate: {ConfigSLP.LEARNING_RATE}")
         print(f"  Epochs: {ConfigSLP.EPOCHS}")
+        print(f"  Token length for ByT5: {ConfigSLP.MAX_TOKEN_LENGTH}")
