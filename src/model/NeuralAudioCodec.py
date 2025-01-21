@@ -18,8 +18,11 @@ class NeuralAudioCodec(nn.Module):
 
         self.lambda_factor = lambda_factor
 
-        # Freeze the parameters of the audio decoder
+
         for param in self.audio_decoder.parameters():
+            param.requires_grad = False
+
+        for param in self.language_model.parameters():
             param.requires_grad = False
 
     def forward(self, text_input, audio_input):
@@ -41,7 +44,9 @@ class NeuralAudioCodec(nn.Module):
     
         reconstruction_loss = F.mse_loss(reconstructed_audio, audio_input)
 
-        lm_outputs = self.language_model(inputs_embeds=audio_latents, labels=text_input["input_ids"])
+        with torch.no_grad():
+            lm_outputs = self.language_model(inputs_embeds=audio_latents, labels=text_input["input_ids"])
+        
         lm_loss = lm_outputs.loss
 
         total_loss = reconstruction_loss + self.lambda_factor * (lm_loss)
