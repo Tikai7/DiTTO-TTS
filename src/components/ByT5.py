@@ -1,6 +1,5 @@
 
-import torch 
-from transformers import T5EncoderModel, AutoTokenizer
+from transformers import T5EncoderModel
 import torch.nn as nn
 
 class ByT5(nn.Module):

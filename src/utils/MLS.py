@@ -8,7 +8,7 @@ from torch.nn.utils.rnn import pad_sequence
 from tqdm import tqdm 
 
 class MLSDataset(Dataset):
-    def __init__(self, data_dir, max_text_token_length, sampling_rate=24000, nb_samples=None):
+    def __init__(self, data_dir, max_text_token_length, sampling_rate=24000, nb_samples=None, tokenizer_model="google/byt5-small"):
         """
         MLS Dataset for loading audio files and their corresponding transcripts.
 
@@ -20,13 +20,16 @@ class MLSDataset(Dataset):
         self.data_dir = data_dir
         self.audio_dir = os.path.join(data_dir, "audio_clean")  # Directory containing clean audio files  (.opus)
         self.transcripts_file = os.path.join(data_dir, "transcripts.txt").replace('\\','/')  # Transcription file
-        self.tokenized_file = os.path.join(data_dir, "tokenized_transcripts.json")
+        self.tokenized_file = os.path.join(data_dir, f"tokenized_transcripts_{tokenizer_model.replace('/','_').replace('-','_')}.json")
         self.sampling_rate = sampling_rate
         self.max_text_token_length = max_text_token_length
 
         # Initialize processors
         self.processor = AutoProcessor.from_pretrained("facebook/encodec_24khz")
-        self.tokenizer = AutoTokenizer.from_pretrained("google/byt5-small")
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_model)
+
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
 
         # Load and preprocess data
         if os.path.exists(self.tokenized_file):
@@ -53,9 +56,12 @@ class MLSDataset(Dataset):
 
         
         # Process audio
-        processed_audio = self.processor(
+        output_processor = self.processor(
             raw_audio=waveform.squeeze().numpy(), sampling_rate=self.sampling_rate, return_tensors="pt"
-        )["input_values"].squeeze(0)
+        )
+
+        processed_audio = output_processor["input_values"].squeeze(0)
+        padding_mask_audio = output_processor["padding_mask"].squeeze(0)
 
         duration = waveform.size(-1) / self.sampling_rate
         if not (10 <= duration <= 20):
@@ -68,6 +74,7 @@ class MLSDataset(Dataset):
         return {
             "audio": processed_audio,
             "text": tokenized_text,
+            "padding_mask_audio": padding_mask_audio,
             "label": torch.tensor(duration, dtype=torch.long),
         }
 
@@ -121,11 +128,21 @@ class MLSDataset(Dataset):
 
     @staticmethod
     def collate_fn(batch):
-        """Custom collate function to handle padding for audio tensors."""
+        """
+        Custom collate function to handle padding and audio codes for EnCodec.
+        """
         audio = [item["audio"].squeeze(0) for item in batch]  # Ensure audio is 1D
+        audio_padded = pad_sequence(audio, batch_first=True)  # Pad audio tensors
+
+        padding_masks = [item["padding_mask_audio"].squeeze(0) for item in batch]
+        padding_masks_padded = pad_sequence(padding_masks, batch_first=True, padding_value=True)  # Padding mask
+
         text = {key: torch.cat([item["text"][key] for item in batch], dim=0) for key in batch[0]["text"]}
         labels = torch.stack([item["label"] for item in batch])
-        audio_padded = pad_sequence(audio, batch_first=True)
 
-        return {"audio": audio_padded.unsqueeze(1), "text": text, "label": labels}
-        
+        return {
+            "audio": audio_padded.unsqueeze(1),  
+            "padding_mask_audio": padding_masks_padded,  
+            "text": text,  
+            "label": labels,  
+        }

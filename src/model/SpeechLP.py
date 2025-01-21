@@ -44,7 +44,7 @@ class SLP(nn.Module):
         """
 
         z_text = self.text_encoder(text)
-        z_audio = self.audio_encoder(audio)
+        z_audio, _ = self.audio_encoder(audio)
         z_audio = z_audio.view(z_audio.size(0), -1, z_audio.size(-1)) 
         
         tgt_mask = self.generate_causal_mask(z_audio.size(1), z_audio.device)

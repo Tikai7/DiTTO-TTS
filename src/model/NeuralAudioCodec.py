@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from transformers import EncodecModel, GPT2LMHeadModel
 from components.EnCodec import EnCodec
-from components.ByT5 import ByT5
+from components.VectorQuantizer import VectorQuantizer
 
 class NAC(nn.Module):
     """
@@ -15,7 +15,7 @@ class NAC(nn.Module):
         self.language_model = GPT2LMHeadModel.from_pretrained("gpt2")
         self.audio_encoder = EnCodec(self.language_model.config.n_embd)
         self.audio_decoder = EncodecModel.from_pretrained("facebook/encodec_24khz")
-
+        self.vector_quantizer = VectorQuantizer(self.audio_encoder.model.config.codebook_size, self.language_model.config.n_embd)
         self.lambda_factor = lambda_factor
 
         for param in self.audio_decoder.parameters():
@@ -24,7 +24,7 @@ class NAC(nn.Module):
         for param in self.language_model.parameters():
             param.requires_grad = False
 
-    def forward(self, text_input, audio_input):
+    def forward(self, text_input, audio_input, padding_mask_audio):
         """
         Forward pass for the neural audio codec model.
         
@@ -37,14 +37,23 @@ class NAC(nn.Module):
                   alignment loss, reconstruction loss, and total loss.
         """
 
-        audio_latents = self.audio_encoder(audio_input)
+        audio_latents, audio_scales = self.audio_encoder(audio_input, padding_mask_audio)
+        audio_latents_quantized = self.vector_quantizer(audio_latents)
         with torch.no_grad():
-            reconstructed_audio = self.audio_decoder.decode(audio_latents)
-    
+            reconstructed_audio = self.audio_decoder.decode(audio_latents_quantized.unsqueeze(0), audio_scales=audio_scales, padding_mask=padding_mask_audio)[0]
+
         reconstruction_loss = F.mse_loss(reconstructed_audio, audio_input)
 
+
+        max_length = self.language_model.config.n_positions
+        lm_audio_latents = audio_latents[:, :, :max_length].mean(dim=1)
         with torch.no_grad():
-            lm_outputs = self.language_model(inputs_embeds=audio_latents, labels=text_input["input_ids"])
+            print(lm_audio_latents.shape, text_input["input_ids"].shape, text_input["attention_mask"].shape)
+            lm_outputs = self.language_model(
+                inputs_embeds=lm_audio_latents,
+                attention_mask=text_input["attention_mask"],
+                labels=text_input["input_ids"]
+            )
         
         lm_loss = lm_outputs.loss
 
