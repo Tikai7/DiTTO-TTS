@@ -5,7 +5,7 @@ from transformers import EncodecModel, GPT2LMHeadModel
 from components.EnCodec import EnCodec
 from components.ByT5 import ByT5
 
-class NeuralAudioCodec(nn.Module):
+class NAC(nn.Module):
     """
     Neural Audio Codec with encoder, decoder, and alignment loss using cosine similarity.
     """
@@ -58,3 +58,4 @@ class NeuralAudioCodec(nn.Module):
             "reconstruction_loss": reconstruction_loss,
             "total_loss": total_loss
         }
+    

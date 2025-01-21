@@ -60,12 +60,7 @@ def train(self, train_loader):
         audio = batch["audio"].to(self.device)
 
         output = self.model(text, audio)
-
-        reconstructed_audio = output["reconstructed_audio"]
-        alignement_loss = output["alignment_loss"]
-
-        reconstruction_loss = self.criterion(reconstructed_audio, audio)
-        loss = self.compute_total_loss(reconstruction_loss, alignement_loss)
+        loss = output.total_loss
 
         losses += loss.item()
         self.optimizer.zero_grad()
@@ -73,6 +68,7 @@ def train(self, train_loader):
         self.optimizer.step()
 
     return losses / len(train_loader), {"accuracy" : -1}
+
 
 def validation(self, validation_loader):
     losses = 0
@@ -84,15 +80,13 @@ def validation(self, validation_loader):
         
         text = batch["text"]
         audio = batch["audio"].to(self.device)
+
         output = self.model(text, audio)
-        reconstructed_audio = output["reconstructed_audio"]
-        alignement_loss = output["alignment_loss"]
-        reconstruction_loss = self.criterion(reconstructed_audio, audio)
-        loss = self.compute_total_loss(reconstruction_loss, alignement_loss)
+        loss = output.total_loss
+        
         losses += loss.item()
 
     return losses / len(train_loader), {"accuracy" : -1}
-
 
 
 trainer = Trainer()
