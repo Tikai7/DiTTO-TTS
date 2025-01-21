@@ -53,5 +53,6 @@ trainer.set_model(model, name="SLP")\
     .set_optimizer(optimizer)\
     .fit(
         train_data=train_loader, validation_data=val_loader, 
-        epochs=Config.EPOCHS, learning_rate=Config.LEARNING_RATE, checkpoint_interval=1        
+        epochs=Config.EPOCHS, learning_rate=Config.LEARNING_RATE, checkpoint_interval=1      ,
+        checkpoint_path="checkpoint_epoch_20.pth"  
     )

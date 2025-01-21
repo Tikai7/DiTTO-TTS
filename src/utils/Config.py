@@ -26,7 +26,7 @@ class Config:
     LAMBDA_FACTOR = 0.1
     BATCH_SIZE = 8
     LEARNING_RATE = 1e-4
-    EPOCHS = 20
+    EPOCHS = 50
     NB_SAMPLES = 10000
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     # DEVICE = "cpu"

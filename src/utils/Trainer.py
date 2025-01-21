@@ -74,6 +74,7 @@ class Trainer:
             start_epoch = 0
 
         best_loss = 0
+        best_model = None
         os.makedirs(checkpoint_dir, exist_ok=True)
 
         for epoch in range(start_epoch, epochs):
