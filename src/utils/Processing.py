@@ -1,7 +1,7 @@
 import subprocess
 import os
 from tqdm import tqdm
-from Config import Config
+from Config import ConfigSLP
 
 class Processing:
 
@@ -38,8 +38,8 @@ class Processing:
 
 
 if __name__ == "__main__":
-    from Config import Config
+    from Config import ConfigSLP
 
-    Processing.remove_metadata_from_audio_folder(Config.TRAIN_PATH+"/"+"audio", Config.TRAIN_PATH+"/"+"audio_clean",)
-    Processing.remove_metadata_from_audio_folder(Config.TEST_PATH+"/"+"audio", Config.TEST_PATH+"/"+"audio_clean",)
-    Processing.remove_metadata_from_audio_folder(Config.DEV_PATH+"/"+"audio", Config.DEV_PATH+"/"+"audio_clean",)
+    Processing.remove_metadata_from_audio_folder(ConfigSLP.TRAIN_PATH+"/"+"audio", ConfigSLP.TRAIN_PATH+"/"+"audio_clean",)
+    Processing.remove_metadata_from_audio_folder(ConfigSLP.TEST_PATH+"/"+"audio", ConfigSLP.TEST_PATH+"/"+"audio_clean",)
+    Processing.remove_metadata_from_audio_folder(ConfigSLP.DEV_PATH+"/"+"audio", ConfigSLP.DEV_PATH+"/"+"audio_clean",)
