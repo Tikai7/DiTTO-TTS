@@ -81,6 +81,7 @@ def validation(self, validation_loader):
     for batch in tqdm(validation_loader):
         batch["text"]["input_ids"] = batch["text"]["input_ids"].to(self.device)
         batch["text"]["attention_mask"] = batch["text"]["attention_mask"].to(self.device)
+        
         text = batch["text"]
         audio = batch["audio"].to(self.device)
         output = self.model(text, audio)
