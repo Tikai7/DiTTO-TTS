@@ -39,22 +39,20 @@ class NAC(nn.Module):
 
         audio_latents, audio_scales = self.audio_encoder(audio_input, padding_mask_audio)
         audio_latents_quantized = self.vector_quantizer(audio_latents)
-        with torch.no_grad():
-            reconstructed_audio = self.audio_decoder.decode(audio_latents_quantized.unsqueeze(0), audio_scales=audio_scales, padding_mask=padding_mask_audio)[0]
+        reconstructed_audio = self.audio_decoder.decode(audio_latents_quantized.unsqueeze(0), audio_scales=audio_scales, padding_mask=padding_mask_audio)[0]
 
         reconstruction_loss = F.mse_loss(reconstructed_audio, audio_input)
 
 
         max_length = self.language_model.config.n_positions
         lm_audio_latents = audio_latents[:, :, :max_length].mean(dim=1)
-        with torch.no_grad():
-            print(lm_audio_latents.shape, text_input["input_ids"].shape, text_input["attention_mask"].shape)
-            lm_outputs = self.language_model(
-                inputs_embeds=lm_audio_latents,
-                attention_mask=text_input["attention_mask"],
-                labels=text_input["input_ids"]
-            )
         
+        lm_outputs = self.language_model(
+            inputs_embeds=lm_audio_latents,
+            attention_mask=text_input["attention_mask"],
+            labels=text_input["input_ids"]
+        )
+    
         lm_loss = lm_outputs.loss
 
         total_loss = reconstruction_loss + self.lambda_factor * (lm_loss)

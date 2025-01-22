@@ -13,11 +13,11 @@ class Trainer:
         self.model = None
         self.optimizer = None
         self.criterion = None
-        # self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.__custom_train = None
         self.__custom_validation = None
         self.__is_custom_functions = False
-        self.device = "cpu"
+        # self.device = "cpu"
 
         self.history = {
             "params": {

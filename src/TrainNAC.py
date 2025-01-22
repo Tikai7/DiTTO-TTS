@@ -22,19 +22,24 @@ train_set = MLSDataset(
     data_dir=ConfigNAC.TRAIN_PATH,
     max_text_token_length=ConfigNAC.MAX_TOKEN_LENGTH,
     sampling_rate=ConfigNAC.SAMPLE_RATE,
+    nb_samples = ConfigNAC.NB_SAMPLES,
+    tokenizer_model="gpt2"
 )
 
 val_set = MLSDataset(
     data_dir=ConfigNAC.DEV_PATH,
     max_text_token_length=ConfigNAC.MAX_TOKEN_LENGTH,
     sampling_rate=ConfigNAC.SAMPLE_RATE,
-)
+    tokenizer_model="gpt2"
 
+)
 
 test_set = MLSDataset(
     data_dir=ConfigNAC.TEST_PATH,
     max_text_token_length=ConfigNAC.MAX_TOKEN_LENGTH,
     sampling_rate=ConfigNAC.SAMPLE_RATE,
+    tokenizer_model="gpt2"
+
 )
 
 train_loader = DataLoader(train_set, batch_size=ConfigNAC.BATCH_SIZE, shuffle=True, collate_fn=MLSDataset.collate_fn)
@@ -47,7 +52,6 @@ model = model.to(ConfigNAC.DEVICE)
 criterion = nn.MSELoss()
 optimizer = torch.optim.AdamW
 
-
 def train(self, train_loader):
     losses = 0
     self.model.train()
@@ -58,9 +62,10 @@ def train(self, train_loader):
 
         text = batch["text"]
         audio = batch["audio"].to(self.device)
+        padding_mask_audio = batch["padding_mask_audio"].to(self.device)
 
-        output = self.model(text, audio)
-        loss = output.total_loss
+        output = self.model(text, audio, padding_mask_audio)
+        loss = output["total_loss"]
 
         losses += loss.item()
         self.optimizer.zero_grad()
@@ -80,9 +85,10 @@ def validation(self, validation_loader):
         
         text = batch["text"]
         audio = batch["audio"].to(self.device)
+        padding_mask_audio = batch["padding_mask_audio"].to(self.device)
 
-        output = self.model(text, audio)
-        loss = output.total_loss
+        output = self.model(text, audio, padding_mask_audio)
+        loss = output["total_loss"]
         
         losses += loss.item()
 
@@ -91,7 +97,7 @@ def validation(self, validation_loader):
 
 trainer = Trainer()
 trainer.set_model(model, name=ConfigNAC.MODEL_NAME)\
-    .set_criterion(criterion)\
+    .set_criterion(torch.nn.MSELoss)\
     .set_optimizer(optimizer)\
     .set_custom_functions(train_func=train, validation_func=validation)\
     .fit(

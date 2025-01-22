@@ -10,8 +10,8 @@ class BaseConfig:
     MAX_AUDIO_DURATION = 20  # seconds
     
     # Training settings
-    # DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    DEVICE = "cpu"
+    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    # DEVICE = "cpu"
     BETAS = [0.9, 0.999]
 
     # Data settings
