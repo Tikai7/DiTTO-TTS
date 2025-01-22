@@ -47,8 +47,8 @@ class NAC(nn.Module):
 
         max_length = self.language_model.config.n_positions
         lm_audio_latents = audio_latents[:, :, :max_length].mean(dim=1)
+        
         with torch.no_grad():
-            print(lm_audio_latents.shape, text_input["input_ids"].shape, text_input["attention_mask"].shape)
             lm_outputs = self.language_model(
                 inputs_embeds=lm_audio_latents,
                 attention_mask=text_input["attention_mask"],
