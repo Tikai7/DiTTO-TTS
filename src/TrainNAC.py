@@ -72,27 +72,27 @@ def train(self, train_loader):
         loss.backward()
         self.optimizer.step()
 
-    return losses / len(train_loader), {"accuracy" : -1}
+    return losses / len(train_loader), {"lm_loss" : output["lm_loss"], "reconstruction_loss": output["reconstruction_loss"]}
 
 
 def validation(self, validation_loader):
     losses = 0
     self.model.eval()
+    with torch.no_grad():
+        for batch in tqdm(validation_loader):
+            batch["text"]["input_ids"] = batch["text"]["input_ids"].to(self.device)
+            batch["text"]["attention_mask"] = batch["text"]["attention_mask"].to(self.device)
+            
+            text = batch["text"]
+            audio = batch["audio"].to(self.device)
+            padding_mask_audio = batch["padding_mask_audio"].to(self.device)
 
-    for batch in tqdm(validation_loader):
-        batch["text"]["input_ids"] = batch["text"]["input_ids"].to(self.device)
-        batch["text"]["attention_mask"] = batch["text"]["attention_mask"].to(self.device)
-        
-        text = batch["text"]
-        audio = batch["audio"].to(self.device)
-        padding_mask_audio = batch["padding_mask_audio"].to(self.device)
+            output = self.model(text, audio, padding_mask_audio)
+            loss = output["total_loss"]
+            
+            losses += loss.item()
 
-        output = self.model(text, audio, padding_mask_audio)
-        loss = output["total_loss"]
-        
-        losses += loss.item()
-
-    return losses / len(train_loader), {"accuracy" : -1}
+    return losses / len(validation_loader), {"lm_loss" : output["lm_loss"], "reconstruction_loss": output["reconstruction_loss"]}
 
 
 trainer = Trainer()

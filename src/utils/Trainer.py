@@ -27,11 +27,11 @@ class Trainer:
             },
             "validation": {
                 "loss": [],
-                "accuracy": [],
+                "metrics": [],
             },
             "train": {
                 "loss": [],
-                "accuracy": [],
+                "metrics" : []
             },
         }
 
@@ -54,7 +54,7 @@ class Trainer:
     def set_custom_functions(self, train_func, validation_func):
         """
             Train and Validation function have to return at least (loss, metrics)
-            With metrics having "accuracy" key at least
+            With metrics
         """
         self.__custom_train = train_func
         self.__custom_validation = validation_func
@@ -76,7 +76,6 @@ class Trainer:
             start_epoch = 0
 
         best_loss = 0
-        best_model = None
         os.makedirs(checkpoint_dir, exist_ok=True)
 
         for epoch in range(start_epoch, epochs):
@@ -86,10 +85,10 @@ class Trainer:
             self.__print_epoch(epoch, train_loss, train_metrics, val_loss, val_metrics, verbose)
 
             self.history["train"]["loss"].append(train_loss)
-            self.history["train"]["accuracy"].append(train_metrics["accuracy"])
+            self.history["train"]["metrics"].append(train_metrics)
 
             self.history["validation"]["loss"].append(val_loss)
-            self.history["validation"]["accuracy"].append(val_metrics["accuracy"])
+            self.history["validation"]["metrics"].append(val_metrics)
 
 
             if self.history["validation"]["loss"][-1] <= best_loss:
@@ -185,7 +184,7 @@ class Trainer:
 
     def __compute_metrics(self, labels, predictions):
         """
-        Calculate precision, recall, and F1-score for each class.
+        Calculate accuracy
         """
         accuracy = accuracy_score(labels, predictions)
         return {
@@ -200,9 +199,9 @@ class Trainer:
             print(
                 f"[INFO] Epoch {epoch + 1}:"
                 f"\n  Train -> Loss: {train_loss:.4f},"
-                f" Accuracy: {train_metrics['accuracy']:.4f}"
+                f" Metrics: {train_metrics}"
                 f"\n  Val   -> Loss: {val_loss:.4f},"
-                f" Accuracy: {val_metrics['accuracy']:.4f}"
+                f" Metrics: {val_metrics}"
             )
 
 

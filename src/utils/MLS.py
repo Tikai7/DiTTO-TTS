@@ -48,6 +48,14 @@ class MLSDataset(Dataset):
         """Retrieve a single dataset item."""
         audio_path, tokenized_text, duration = self.data[idx]
 
+      
+        if os.getcwd().split("/")[1] == "tempory": # only works on sorbonne's PPTI just tokenize well ur file and remove it
+            audio_path = audio_path.replace(
+                "C:/Cours-Sorbonne/M2/UE_DEEP/AMAL/Projet/data/mls_french_opus/mls_french_opus/train/audio_clean", 
+                "/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/data/mls_french_opus/train/audio_clean"
+            )
+    
+    
         # Load audio
         waveform, sr = torchaudio.load(audio_path)
         if sr != self.sampling_rate:
