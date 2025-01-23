@@ -71,7 +71,7 @@ class Trainer:
         self.history["params"]["lr"] = learning_rate
         self.history["params"]["epochs"] = epochs
         try:
-            start_epoch = self._load_checkpoint(checkpoint_dir+"/"+checkpoint_path)
+            start_epoch = self.__load_checkpoint(checkpoint_dir+"/"+checkpoint_path)
         except:
             start_epoch = 0
 
@@ -113,7 +113,7 @@ class Trainer:
         }, checkpoint_path)
         print(f"[INFO] Checkpoint saved at {checkpoint_path}")
 
-    def _load_checkpoint(self, checkpoint_path):
+    def __load_checkpoint(self, checkpoint_path):
         if not os.path.exists(checkpoint_path):
             raise FileNotFoundError(f"[ERROR] Checkpoint {checkpoint_path} not found.")
         checkpoint = torch.load(checkpoint_path)
