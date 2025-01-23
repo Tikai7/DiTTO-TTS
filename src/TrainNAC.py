@@ -95,6 +95,7 @@ def validation(self, validation_loader):
     return losses / len(validation_loader), {"lm_loss" : output["lm_loss"], "reconstruction_loss": output["reconstruction_loss"]}
 
 
+
 trainer = Trainer()
 trainer.set_model(model, name=ConfigNAC.MODEL_NAME)\
     .set_criterion(criterion)\
