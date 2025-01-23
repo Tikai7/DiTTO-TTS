@@ -49,7 +49,7 @@ test_loader = DataLoader(test_set, batch_size=ConfigNAC.BATCH_SIZE, shuffle=True
 
 model = NAC(ConfigNAC.LAMBDA_FACTOR)
 model = model.to(ConfigNAC.DEVICE)
-criterion = nn.MSELoss()
+criterion = nn.MSELoss() # useless here
 optimizer = torch.optim.AdamW
 
 def train(self, train_loader):
@@ -98,7 +98,7 @@ def validation(self, validation_loader):
 
 trainer = Trainer()
 trainer.set_model(model, name=ConfigNAC.MODEL_NAME)\
-    .set_criterion(torch.nn.MSELoss)\
+    .set_criterion(criterion)\
     .set_optimizer(optimizer)\
     .set_custom_functions(train_func=train, validation_func=validation)\
     .fit(
