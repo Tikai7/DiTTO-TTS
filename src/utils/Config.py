@@ -107,7 +107,7 @@ class ConfigDiTTO(BaseConfig):
 
     # Model architecture (Section 3.3 of the paper)
     HIDDEN_DIM = 768  # Hidden dimension of the transformer (GPT-2)
-    NUM_LAYERS = 6  # Number of DiT blocks (12 for base model, 24 for large)
+    NUM_LAYERS = 5  # Number of DiT blocks (12 for base model, 24 for large)
     NUM_HEADS = 1  # Number of attention heads
     TIME_DIM = 256  # Dimension of time embeddings
     TEXT_EMBED_DIM = 768  # Text dimension To match with NAC (GPT-2)

@@ -14,17 +14,24 @@ class DiTTO(nn.Module):
         time_dim=256,
         text_dim=768,
         diffusion_steps=1000,
-        lambda_factor=0.1
+        lambda_factor=0.1,
+        nac_model_path="/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/src/params/NAC_epoch_20.pth"
     ):
         super().__init__()
 
+        print("[INFO] Loading NAC model...")
         self.nac = NAC(lambda_factor=lambda_factor)
+        nac_info = torch.load(nac_model_path)
+        self.nac.load_state_dict(nac_info["model_state_dict"])
         self.nac.eval() 
+
         for param in self.nac.language_model.parameters():
             param.requires_grad = False
 
         for param in self.nac.audio_encoder.parameters():
             param.requires_grad = False  
+        
+        print("[INFO] NAC Loaded.")
 
         # Time embedding: add an embedding layer for time steps
         self.t_embedding = nn.Embedding(diffusion_steps, time_dim)

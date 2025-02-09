@@ -45,6 +45,7 @@ model = DiTTO(
     time_dim=ConfigDiTTO.TIME_DIM,
     text_dim=ConfigDiTTO.TEXT_EMBED_DIM,
     diffusion_steps=ConfigDiTTO.DIFFUSION_STEPS,
+    nac_model_path="/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/src/params/NAC_epoch_20.pth"
 ).to(ConfigDiTTO.DEVICE)
 
 criterion = nn.MSELoss()
