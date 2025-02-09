@@ -101,14 +101,14 @@ class ConfigSLP(BaseConfig):
 
 class ConfigDiTTO(BaseConfig):
     """
-        Configuration for DiT (Diffusion Transformer) model.
+        Configuration for DiTTO (Diffusion Transformer) model.
     """
     MODEL_NAME = "DiTTO"  
 
     # Model architecture (Section 3.3 of the paper)
     HIDDEN_DIM = 768  # Hidden dimension of the transformer (GPT-2)
     NUM_LAYERS = 6  # Number of DiT blocks (12 for base model, 24 for large)
-    NUM_HEADS = 6  # Number of attention heads
+    NUM_HEADS = 1  # Number of attention heads
     TIME_DIM = 256  # Dimension of time embeddings
     TEXT_EMBED_DIM = 768  # Text dimension To match with NAC (GPT-2)
 
@@ -116,12 +116,13 @@ class ConfigDiTTO(BaseConfig):
     DIFFUSION_STEPS = 1000  # Number of diffusion steps (T in the paper)
 
     # Training settings (Section 4 of the paper)
-    EPOCHS = 100  # Number of training epochs
+    EPOCHS = 20  # Number of training epochs
     LEARNING_RATE = 1e-4  # Learning rate
-    BATCH_SIZE = 32  # Batch size
+    BATCH_SIZE = 8  # Batch size
 
     # Data settings
     MAX_TOKEN_LENGTH = 1024  # Maximum token length for text (GPT-2)
+    NB_SAMPLES = 10000
 
     @staticmethod
     def display():
@@ -146,4 +147,5 @@ class ConfigDiTTO(BaseConfig):
         print(f"  Batch Size: {ConfigDiTTO.BATCH_SIZE}")
 
         print("\nData Settings:")
+        print(f"  Number of Samples: {ConfigSLP.NB_SAMPLES}")
         print(f"  Max Token Length: {ConfigDiTTO.MAX_TOKEN_LENGTH}")
