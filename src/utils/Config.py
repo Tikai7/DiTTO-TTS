@@ -125,9 +125,9 @@ class ConfigDiTTO(BaseConfig):
 
     @staticmethod
     def display():
-        """Display DiT configuration."""
+        """Display DiTTO configuration."""
         BaseConfig.display_common()
-        print("\n############# DiT Settings: #############")
+        print("\n############# DiTTO Settings: #############")
 
         print("\nModel Architecture Settings:")
         print(f"  Model Name: {ConfigDiTTO.MODEL_NAME}")

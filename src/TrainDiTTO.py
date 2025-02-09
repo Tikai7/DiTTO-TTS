@@ -3,8 +3,9 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+from model.NeuralAudioCodec import NAC
 from model.DiTTO import DiTTO
-from utils.Config import ConfigDiTTO  
+from utils.Config import ConfigDiTTO, ConfigNAC
 from utils.MLS import MLSDataset
 from utils.Trainer import Trainer
 
@@ -34,6 +35,12 @@ val_loader = DataLoader(val_set,
                         batch_size=ConfigDiTTO.BATCH_SIZE,
                         collate_fn=MLSDataset.collate_fn)
 
+
+
+model_nac = NAC(
+    lambda_factor=ConfigNAC.LAMBDA_FACTOR
+)
+
 model = DiTTO(
     hidden_dim=ConfigDiTTO.HIDDEN_DIM,
     num_layers=ConfigDiTTO.NUM_LAYERS,
@@ -46,27 +53,49 @@ model = DiTTO(
 criterion = nn.MSELoss()
 optimizer = torch.optim.AdamW
 
+
+def get_z_speech_and_z_text(batch, device):
+    batch["text"]["input_ids"] = batch["text"]["input_ids"].to(device)
+    batch["text"]["attention_mask"] = batch["text"]["attention_mask"].to(device)
+    
+    text_input = batch["text"]["input_ids"]
+    audio_input = batch["audio"].to(device)
+    padding_mask_audio = batch["padding_mask_audio"].to(device)
+
+    audio_latents, _ = model_nac.audio_encoder(audio_input, padding_mask_audio)
+    text_embeddings = model_nac.language_model.transformer.wte(text_input["input_ids"])
+
+    return audio_latents, text_embeddings
+
+
 def train(self, train_loader):
     self.model.train()
     total_loss = 0
 
     for batch in tqdm(train_loader):
-        # Prepare inputs
-        latents = batch['audio'].to(self.device)
-        text_emb = batch['text']['input_ids'].to(self.device)
-        padding_mask = batch['padding_mask_audio'].to(self.device)
+        batch["text"]["input_ids"] = batch["text"]["input_ids"].to(self.device)
+        batch["text"]["attention_mask"] = batch["text"]["attention_mask"].to(self.device)
+        
+        text_input = batch["text"]["input_ids"]
+        audio_input = batch["audio"].to(self.device)
+        padding_mask_audio = batch["padding_mask_audio"].to(self.device)
+        
+        with torch.no_grad():
+            # use NAC to get audio and text embeddings
+            audio_latents, _ = self.model.nac.audio_encoder(audio_input, padding_mask_audio)
+            text_embeddings = self.model.nac.language_model.transformer.wte(text_input["input_ids"])
 
         # Sample random time steps
-        t = torch.randint(0, ConfigDiTTO.DIFFUSION_STEPS, (latents.size(0),),
+        t = torch.randint(0, ConfigDiTTO.DIFFUSION_STEPS, (audio_latents.size(0),),
                           device=self.device).long()
         
         # Add noise to latents
-        noise = torch.randn_like(latents)
+        noise = torch.randn_like(audio_latents)
         noisy_latents = self.model.q_sample(
-            latents, t, noise)
+            audio_latents, t, noise)
 
         # Predict noise
-        noise_pred = self.model(noisy_latents, text_emb, t, padding_mask)
+        noise_pred = self.model(noisy_latents, text_embeddings, t)
 
         loss = self.criterion(noise_pred, noise)
 
@@ -85,16 +114,24 @@ def validation(self, val_loader):
 
     with torch.no_grad():
         for batch in tqdm(val_loader):
-            latents = batch['audio'].to(self.device)
-            text_emb = batch['text']['input_ids'].to(self.device)
-            padding_mask = batch['padding_mask_audio'].to(self.device)
+            batch["text"]["input_ids"] = batch["text"]["input_ids"].to(self.device)
+            batch["text"]["attention_mask"] = batch["text"]["attention_mask"].to(self.device)
+            
+            text_input = batch["text"]["input_ids"]
+            audio_input = batch["audio"].to(self.device)
+            padding_mask_audio = batch["padding_mask_audio"].to(self.device)
+            
+            with torch.no_grad():
+                # use NAC to get audio and text embeddings
+                audio_latents, _ = self.model.nac.audio_encoder(audio_input, padding_mask_audio)
+                text_embeddings = self.model.nac.language_model.transformer.wte(text_input["input_ids"])
 
-            t = torch.randint(0, ConfigDiTTO.DIFFUSION_STEPS, (latents.size(0),),
+            t = torch.randint(0, ConfigDiTTO.DIFFUSION_STEPS, (audio_latents.size(0),),
                               device=self.device).long()
 
-            noise = torch.randn_like(latents)
-            noisy_latents = self.model.q_sample(latents, t, noise)
-            noise_pred = self.model(noisy_latents, text_emb, t, padding_mask)
+            noise = torch.randn_like(audio_latents)
+            noisy_latents = self.model.q_sample(audio_latents, t, noise)
+            noise_pred = self.model(noisy_latents, text_embeddings, t)
 
             loss = self.criterion(noise_pred, noise)
             total_loss += loss.item()
