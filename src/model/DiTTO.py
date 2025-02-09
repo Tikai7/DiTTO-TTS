@@ -1,19 +1,30 @@
 import torch
 import torch.nn as nn 
 import torch.nn.functional as F
+from NeuralAudioCodec import NAC
 from components.DiT import DiT, GlobalAdaLN, RotaryEmbedding
 
 class DiTTO(nn.Module):
     """Full DiT Architecture (Section 3.3)"""
 
     def __init__(self,
-                 hidden_dim=768,
-                 num_layers=12,
-                 num_heads=12,
-                 time_dim=256,
-                 text_dim=768,
-                 diffusion_steps=1000):
+        hidden_dim=768,
+        num_layers=12,
+        num_heads=12,
+        time_dim=256,
+        text_dim=768,
+        diffusion_steps=1000,
+        lambda_factor=0.1
+    ):
         super().__init__()
+
+        self.nac = NAC(lambda_factor=lambda_factor)
+        self.nac.eval() 
+        for param in self.nac.language_model.parameters():
+            param.requires_grad = False
+
+        for param in self.nac.audio_encoder.parameters():
+            param.requires_grad = False  
 
         # Time embedding: add an embedding layer for time steps
         self.t_embedding = nn.Embedding(diffusion_steps, time_dim)
