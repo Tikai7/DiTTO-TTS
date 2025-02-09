@@ -1,4 +1,5 @@
 import os
+import sys
 import torch
 import torchaudio
 import torchaudio.transforms as T
@@ -10,6 +11,8 @@ from utils.Config import ConfigDiTTO
 
 from bigvgan_v2_24khz_100band_256x import bigvgan
 from bigvgan_v2_24khz_100band_256x.meldataset import get_mel_spectrogram
+
+
 
 class SpeechGenerator:
     def __init__(
@@ -87,11 +90,11 @@ class SpeechGenerator:
         audio_latents = self.ditto_model.q_sample(audio_latents, ConfigDiTTO.DIFFUSION_STEPS)
         refined_latents = self.__sample_latents(text_embeddings, audio_latents)
 
-        return self.generate_speech_from_latents(refined_latents, audio_scales, padding_mask_audio)
+        return self.__generate_speech_from_latents(refined_latents, audio_scales, padding_mask_audio)
     
 
     @torch.no_grad()
-    def generate_speech_from_latents(self, audio_latents, audio_scales, padding_mask_audio):
+    def __generate_speech_from_latents(self, audio_latents, audio_scales, padding_mask_audio):
         # Quantize the latents and decode the audio waveform
         audio_latents_quantized = self.ditto_model.vector_quantizer(audio_latents)
         waveform = self.ditto_model.nac.audio_decoder.decode(
