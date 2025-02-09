@@ -73,7 +73,7 @@ class ConfigSLP(BaseConfig):
     MODEL_NAME = "SLP"  
     EMBEDDING_DIM = 1472  # Audio embedding dimension
     NUM_LAYERS = 1  # Number of model layers
-    NHEAD = 1  # Number of attention heads
+    NUM_HEADS = 1  # Number of attention heads
     NB_CLASSES = int(BaseConfig.MAX_AUDIO_DURATION - BaseConfig.MIN_AUDIO_DURATION + 1)
     EPOCHS = 20
     LEARNING_RATE = 1e-4
@@ -90,7 +90,7 @@ class ConfigSLP(BaseConfig):
         print(f"  Model Name: {ConfigSLP.MODEL_NAME}")
         print(f"  Embedding Dimension: {ConfigSLP.EMBEDDING_DIM}")
         print(f"  Number of Layers: {ConfigSLP.NUM_LAYERS}")
-        print(f"  Number of Attention Heads: {ConfigSLP.NHEAD}")
+        print(f"  Number of Attention Heads: {ConfigSLP.NUM_HEADS}")
         print(f"  Number of Classes: {ConfigSLP.NB_CLASSES}")
         print(f"  Number of Samples: {ConfigSLP.NB_SAMPLES}")
         print(f"  Batch Size: {ConfigSLP.BATCH_SIZE}")
@@ -106,11 +106,11 @@ class ConfigDiTTO(BaseConfig):
     MODEL_NAME = "DiTTO"  
 
     # Model architecture (Section 3.3 of the paper)
-    HIDDEN_DIM = 768  # Hidden dimension of the transformer
-    NUM_LAYERS = 12  # Number of DiT blocks (12 for base model, 24 for large)
-    NUM_HEADS = 12  # Number of attention heads
+    HIDDEN_DIM = 768  # Hidden dimension of the transformer (GPT-2)
+    NUM_LAYERS = 6  # Number of DiT blocks (12 for base model, 24 for large)
+    NUM_HEADS = 6  # Number of attention heads
     TIME_DIM = 256  # Dimension of time embeddings
-    TEXT_EMBED_DIM = 768  # Dimension of text embeddings (matches ByT5)
+    TEXT_EMBED_DIM = 768  # Text dimension To match with NAC (GPT-2)
 
     # Diffusion process (Section 3.1 of the paper)
     DIFFUSION_STEPS = 1000  # Number of diffusion steps (T in the paper)
@@ -121,7 +121,7 @@ class ConfigDiTTO(BaseConfig):
     BATCH_SIZE = 32  # Batch size
 
     # Data settings
-    MAX_TOKEN_LENGTH = 1024  # Maximum token length for text
+    MAX_TOKEN_LENGTH = 1024  # Maximum token length for text (GPT-2)
 
     @staticmethod
     def display():
@@ -147,5 +147,3 @@ class ConfigDiTTO(BaseConfig):
 
         print("\nData Settings:")
         print(f"  Max Token Length: {ConfigDiTTO.MAX_TOKEN_LENGTH}")
-
-        print("\nLoss Weights:")

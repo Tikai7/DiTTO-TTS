@@ -3,7 +3,6 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from model.NeuralAudioCodec import NAC
 from model.DiTTO import DiTTO
 from utils.Config import ConfigDiTTO, ConfigNAC
 from utils.MLS import MLSDataset
@@ -37,10 +36,6 @@ val_loader = DataLoader(val_set,
 
 
 
-model_nac = NAC(
-    lambda_factor=ConfigNAC.LAMBDA_FACTOR
-)
-
 model = DiTTO(
     hidden_dim=ConfigDiTTO.HIDDEN_DIM,
     num_layers=ConfigDiTTO.NUM_LAYERS,
@@ -52,20 +47,6 @@ model = DiTTO(
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.AdamW
-
-
-def get_z_speech_and_z_text(batch, device):
-    batch["text"]["input_ids"] = batch["text"]["input_ids"].to(device)
-    batch["text"]["attention_mask"] = batch["text"]["attention_mask"].to(device)
-    
-    text_input = batch["text"]["input_ids"]
-    audio_input = batch["audio"].to(device)
-    padding_mask_audio = batch["padding_mask_audio"].to(device)
-
-    audio_latents, _ = model_nac.audio_encoder(audio_input, padding_mask_audio)
-    text_embeddings = model_nac.language_model.transformer.wte(text_input["input_ids"])
-
-    return audio_latents, text_embeddings
 
 
 def train(self, train_loader):
@@ -83,7 +64,10 @@ def train(self, train_loader):
         with torch.no_grad():
             # use NAC to get audio and text embeddings
             audio_latents, _ = self.model.nac.audio_encoder(audio_input, padding_mask_audio)
-            text_embeddings = self.model.nac.language_model.transformer.wte(text_input["input_ids"])
+            max_length = self.model.nac.language_model.config.n_positions
+            audio_latents = audio_latents[:, :, :max_length].mean(dim=1)
+            text_input = text_input[:, :audio_latents.size(1)]
+            text_embeddings = self.model.nac.language_model.transformer.wte(text_input)
 
         # Sample random time steps
         t = torch.randint(0, ConfigDiTTO.DIFFUSION_STEPS, (audio_latents.size(0),),
@@ -124,7 +108,10 @@ def validation(self, val_loader):
             with torch.no_grad():
                 # use NAC to get audio and text embeddings
                 audio_latents, _ = self.model.nac.audio_encoder(audio_input, padding_mask_audio)
-                text_embeddings = self.model.nac.language_model.transformer.wte(text_input["input_ids"])
+                max_length = self.model.nac.language_model.config.n_positions
+                audio_latents = audio_latents[:, :, :max_length].mean(dim=1)
+                text_input = text_input[:, :audio_latents.size(1)]
+                text_embeddings = self.model.nac.language_model.transformer.wte(text_input)
 
             t = torch.randint(0, ConfigDiTTO.DIFFUSION_STEPS, (audio_latents.size(0),),
                               device=self.device).long()

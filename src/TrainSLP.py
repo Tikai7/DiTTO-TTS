@@ -42,7 +42,7 @@ val_loader = DataLoader(val_set, batch_size=ConfigSLP.BATCH_SIZE, shuffle=True, 
 test_loader = DataLoader(test_set, batch_size=ConfigSLP.BATCH_SIZE, shuffle=True, collate_fn=MLSDataset.collate_fn)
 
 
-model = SLP(ConfigSLP.NB_CLASSES, ConfigSLP.NHEAD ,ConfigSLP.NUM_LAYERS)
+model = SLP(ConfigSLP.NB_CLASSES, ConfigSLP.NUM_HEADS ,ConfigSLP.NUM_LAYERS)
 model = model.to(ConfigSLP.DEVICE)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW
