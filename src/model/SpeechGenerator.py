@@ -1,5 +1,4 @@
-import os
-import sys
+
 import torch
 import torchaudio
 import torchaudio.transforms as T
@@ -8,6 +7,8 @@ from transformers import AutoProcessor, AutoTokenizer, AutoModel
 from model.NeuralAudioCodec import NAC
 from model.DiTTO import DiTTO
 from utils.Config import ConfigDiTTO
+
+from tqdm import tqdm 
 
 from bigvgan_v2_24khz_100band_256x import bigvgan
 from bigvgan_v2_24khz_100band_256x.meldataset import get_mel_spectrogram
@@ -21,8 +22,9 @@ class SpeechGenerator:
         nac_model_path="/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/src/params/NAC_epoch_20.pth",
         ditto_model_path="/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/src/params/DiTTO_epoch_20.pth",
         sample_rate=24000,
+        device="cpu"
     ):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device
 
         # Initialize the DiTTO model
         self.ditto_model = DiTTO(
@@ -54,6 +56,10 @@ class SpeechGenerator:
         # Initialize audio processor and text tokenizer 
         self.audio_processor = AutoProcessor.from_pretrained("facebook/encodec_24khz")
         self.text_tokenizer = AutoTokenizer.from_pretrained("gpt2")
+
+        self.betas = self.ditto_model.cosine_beta_schedule(ConfigDiTTO.DIFFUSION_STEPS) 
+        self.alphas = 1.0 - self.betas                          
+        self.alphas_cumprod = torch.cumprod(self.alphas, dim=0)    
 
 
     def generate_speech_from_file(self, file_path, text_prompt):
@@ -87,7 +93,9 @@ class SpeechGenerator:
         text_embeddings = self.ditto_model.nac.language_model.transformer.wte(text_tokens)
 
         # Apply the reverse diffusion process on the latents
-        audio_latents = self.ditto_model.q_sample(audio_latents, ConfigDiTTO.DIFFUSION_STEPS)
+        t = torch.full((audio_latents.size(0),), ConfigDiTTO.DIFFUSION_STEPS-1, device=self.device, dtype=torch.long)
+
+        audio_latents = self.ditto_model.q_sample(audio_latents, t)
         refined_latents = self.__sample_latents(text_embeddings, audio_latents)
 
         return self.__generate_speech_from_latents(refined_latents, audio_scales, padding_mask_audio)
@@ -96,42 +104,46 @@ class SpeechGenerator:
     @torch.no_grad()
     def __generate_speech_from_latents(self, audio_latents, audio_scales, padding_mask_audio):
         # Quantize the latents and decode the audio waveform
-        audio_latents_quantized = self.ditto_model.vector_quantizer(audio_latents)
+        audio_latents = audio_latents.unsqueeze(1).repeat(1, 2, 1, 1)
+        audio_latents_quantized = self.ditto_model.nac.vector_quantizer(audio_latents)
         waveform = self.ditto_model.nac.audio_decoder.decode(
             audio_latents_quantized.unsqueeze(0).detach(),
             audio_scales=audio_scales,
             padding_mask=padding_mask_audio,
         )[0]
-
-        if waveform.dim() == 1:
-            waveform = waveform.unsqueeze(0)
-
+        waveform = waveform.squeeze(1)
         mel_spectrogram = get_mel_spectrogram(waveform, self.vocoder.h).to(self.device)
         generated_waveform = self.vocoder(mel_spectrogram)
 
         return generated_waveform.squeeze(0)
     
-
     @torch.no_grad()
     def __p_sample(self, x, t, text_emb):
-        # Predict noise using the DiTTO model
+        """
+            Reverse diffusion step.
+        """
         noise_pred = self.ditto_model(x, text_emb, t)
-        beta_t = self.ditto_model.betas[t].view(-1, 1, 1)
-        alpha_t = self.ditto_model.alphas[t].view(-1, 1, 1)
-        alpha_cumprod_t = self.ditto_model.alphas_cumprod[t].view(-1, 1, 1)
+        
+        beta_t = self.betas[t].view(-1, 1, 1)
+        alpha_t = self.alphas[t].view(-1, 1, 1)
+        alpha_cumprod_t = self.alphas_cumprod[t].view(-1, 1, 1)
 
         noise = torch.randn_like(x)
         mask = (t > 0).float().view(-1, 1, 1)
-        x_prev = (1 / torch.sqrt(alpha_t)) * (x - (1 - alpha_t) / torch.sqrt(1 - alpha_cumprod_t) * noise_pred) \
-                 + mask * torch.sqrt(beta_t) * noise
+        x_prev = (1 / torch.sqrt(alpha_t)) * (
+                    x - (1 - alpha_t) / torch.sqrt(1 - alpha_cumprod_t) * noise_pred
+                ) + mask * torch.sqrt(beta_t) * noise
         
         return x_prev
 
     @torch.no_grad()
     def __sample_latents(self, text_emb, initial_latents):
-        # Iteratively apply reverse diffusion to refine the latent representation
-        x = initial_latents.to(self.device)
-        for t_val in reversed(range(ConfigDiTTO.DIFFUSION_STEPS)):
-            t_tensor = torch.full((x.shape[0],), t_val, device=self.device, dtype=torch.long)
+        """
+            All reverse diffusion steps
+        """
+        x = initial_latents
+        device = x.device
+        for t_val in tqdm(reversed(range(ConfigDiTTO.DIFFUSION_STEPS))):
+            t_tensor = torch.full((x.shape[0],), t_val, device=device, dtype=torch.long)
             x = self.__p_sample(x, t_tensor, text_emb)
         return x
