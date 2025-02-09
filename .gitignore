@@ -6,3 +6,4 @@
 /src/checkpoints
 *.pth
 /src/params
+/.env
