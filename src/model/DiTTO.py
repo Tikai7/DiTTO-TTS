@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn 
 import torch.nn.functional as F
-from NeuralAudioCodec import NAC
+from model.NeuralAudioCodec import NAC
 from components.DiT import DiT, GlobalAdaLN, RotaryEmbedding
 
 class DiTTO(nn.Module):
