@@ -15,6 +15,7 @@ train_set = MLSDataset(
     data_dir=ConfigDiTTO.TRAIN_PATH,
     max_text_token_length=ConfigDiTTO.MAX_TOKEN_LENGTH,
     sampling_rate=ConfigDiTTO.SAMPLE_RATE,
+    nb_samples=ConfigDiTTO.NB_SAMPLES,
     tokenizer_model="gpt2"
 )
 
@@ -22,6 +23,7 @@ val_set = MLSDataset(
     data_dir=ConfigDiTTO.DEV_PATH,
     max_text_token_length=ConfigDiTTO.MAX_TOKEN_LENGTH,
     sampling_rate=ConfigDiTTO.SAMPLE_RATE,
+    nb_samples=ConfigDiTTO.NB_SAMPLES,
     tokenizer_model="gpt2"
 )
 
