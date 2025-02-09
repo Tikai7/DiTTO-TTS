@@ -57,9 +57,9 @@ class SpeechGenerator:
         self.audio_processor = AutoProcessor.from_pretrained("facebook/encodec_24khz")
         self.text_tokenizer = AutoTokenizer.from_pretrained("gpt2")
 
-        self.betas = self.ditto_model.cosine_beta_schedule(ConfigDiTTO.DIFFUSION_STEPS) 
-        self.alphas = 1.0 - self.betas                          
-        self.alphas_cumprod = torch.cumprod(self.alphas, dim=0)    
+        self.betas = self.ditto_model.cosine_beta_schedule(ConfigDiTTO.DIFFUSION_STEPS).to(self.device)
+        self.alphas = (1.0 - self.betas).to(self.device)                     
+        self.alphas_cumprod = torch.cumprod(self.alphas, dim=0).to(self.device)
 
 
     def generate_speech_from_file(self, file_path, text_prompt):
@@ -81,14 +81,14 @@ class SpeechGenerator:
 
 
     @torch.no_grad()
-    def generate_speech_from_audio_tensor(self, audio_tensor, padding_mask_audio, text_prompt):
+    def generate_speech_from_audio_tensor(self, audio_tensor, padding_mask_audio, text_prompt, is_tokenized=False):
         # Encode the audio to obtain latents and scales
         audio_latents, audio_scales = self.ditto_model.nac.audio_encoder(audio_tensor, padding_mask_audio)
         max_length = self.ditto_model.nac.language_model.config.n_positions
         audio_latents = audio_latents[:, :, :max_length].mean(dim=1)
 
         # Tokenize the text prompt and extract text embeddings
-        text_tokens = self.text_tokenizer(text_prompt, return_tensors="pt").input_ids.to(self.device)
+        text_tokens = self.text_tokenizer(text_prompt, return_tensors="pt").input_ids.to(self.device) if not is_tokenized else text_prompt
         text_tokens = text_tokens[:, :max_length]
         text_embeddings = self.ditto_model.nac.language_model.transformer.wte(text_tokens)
 
