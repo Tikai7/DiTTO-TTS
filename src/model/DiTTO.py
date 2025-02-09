@@ -14,17 +14,24 @@ class DiTTO(nn.Module):
         time_dim=256,
         text_dim=768,
         diffusion_steps=1000,
-        lambda_factor=0.1
+        lambda_factor=0.1,
+        nac_model_path="/tempory/M2-DAC/UE_DEEP/AMAL/DiTTO-TTS/src/params/NAC_epoch_20.pth"
     ):
         super().__init__()
 
+        print("[INFO] Loading NAC model...")
         self.nac = NAC(lambda_factor=lambda_factor)
+        nac_info = torch.load(nac_model_path)
+        self.nac.load_state_dict(nac_info["model_state_dict"])
         self.nac.eval() 
+
         for param in self.nac.language_model.parameters():
             param.requires_grad = False
 
         for param in self.nac.audio_encoder.parameters():
             param.requires_grad = False  
+        
+        print("[INFO] NAC Loaded.")
 
         # Time embedding: add an embedding layer for time steps
         self.t_embedding = nn.Embedding(diffusion_steps, time_dim)
@@ -117,35 +124,3 @@ class DiTTO(nn.Module):
             sqrt_alphas_cumprod_t * x_start +
             sqrt_one_minus_alphas_cumprod_t * noise
         )
-
-
-if __name__ == '__main__':
-    # Quick test to check the model (it does :*)
-    batch_size = 4
-    seq_len = 128
-    hidden_dim = 768
-    text_dim = 768
-    time_dim = 256
-    diffusion_steps = 1000
-
-    model = DiTTO(
-        hidden_dim=hidden_dim,
-        num_layers=12,
-        num_heads=12,
-        time_dim=time_dim,
-        text_dim=text_dim,
-        diffusion_steps=diffusion_steps
-    )
-
-    x_start = torch.randn(batch_size, seq_len, hidden_dim)
-    text_emb = torch.randn(batch_size, seq_len, text_dim)
-    t = torch.randint(0, diffusion_steps, (batch_size,)
-                      ) 
-    noise = torch.randn_like(x_start)
-
-    noisy_latents = model.q_sample(x_start, t, noise)
-    predicted_noise = model(noisy_latents, text_emb, t)
-
-    print(predicted_noise.shape)  # Expected: [4, 128, 768]
-    loss = F.mse_loss(predicted_noise, noise)
-    print(f"Loss: {loss.item()}")

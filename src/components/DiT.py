@@ -82,8 +82,6 @@ class DiT(nn.Module):
 
         # Self-attention components
         self.norm1 = nn.LayerNorm(hidden_dim)
-        # We still create an instance of MultiheadAttention to hold the projection weights,
-        # but we will use its in_proj_weight and in_proj_bias manually.
         self.attn = nn.MultiheadAttention(hidden_dim, num_heads)
         self.rotary = RotaryEmbedding(self.head_dim)
 
@@ -106,7 +104,8 @@ class DiT(nn.Module):
         residual = x
         x = self.norm1(x)
 
-        # -- Manually compute q, k, v using in_proj weights --
+        # Manually compute q, k, v using in_proj weights -- (for fun ?)
+        
         d_model = x.size(-1)  # should be hidden_dim
         w = self.attn.in_proj_weight  # shape: [3*d_model, d_model]
         b = self.attn.in_proj_bias    # shape: [3*d_model]
@@ -114,28 +113,27 @@ class DiT(nn.Module):
         k = F.linear(x, w[d_model:2*d_model, :], b[d_model:2*d_model])
         v = F.linear(x, w[2*d_model:, :], b[2*d_model:])
 
-        # -- Reshape q, k, v to [batch, seq_len, num_heads, head_dim] --
+        # Reshape q, k, v to [batch, seq_len, num_heads, head_dim] 
         q = rearrange(q, 'b n (h d) -> b n h d', h=self.num_heads)
         k = rearrange(k, 'b n (h d) -> b n h d', h=self.num_heads)
         v = rearrange(v, 'b n (h d) -> b n h d', h=self.num_heads)
 
         # -- Apply RoPE to q and k.
-        #    rotary_pos is computed as: [seq_len, head_dim] from RotaryEmbedding.forward().
-        q = self.rotary.apply_rope(rotary_pos, q)  # output shape: [b, n, h, d]
+        q = self.rotary.apply_rope(rotary_pos, q)  
         k = self.rotary.apply_rope(rotary_pos, k)
 
-        # -- Permute to [batch, num_heads, seq_len, head_dim] for attention computation --
-        q = q.permute(0, 2, 1, 3)  # [b, h, n, d]
-        k = k.permute(0, 2, 1, 3)  # [b, h, n, d]
-        v = v.permute(0, 2, 1, 3)  # [b, h, n, d]
+        # Permute to [batch, num_heads, seq_len, head_dim] for attention computation 
+        q = q.permute(0, 2, 1, 3)  
+        k = k.permute(0, 2, 1, 3)  
+        v = v.permute(0, 2, 1, 3)  
 
-        # -- Scaled Dot-Product Attention --
+        # Scaled Dot-Product Attention --
         scores = torch.matmul(q, k.transpose(-2, -1)) / \
-            math.sqrt(self.head_dim)  # [b, h, n, n]
+            math.sqrt(self.head_dim) 
         attn = torch.softmax(scores, dim=-1)
-        attn_out = torch.matmul(attn, v)  # [b, h, n, d]
+        attn_out = torch.matmul(attn, v)
 
-        # -- Merge heads back: reshape to [batch, seq_len, hidden_dim] --
+        # Merge heads back: reshape to [batch, seq_len, hidden_dim] 
         attn_out = attn_out.permute(0, 2, 1, 3).reshape(
             batch_size, seq_len, d_model)
         x = attn_out + residual
@@ -143,7 +141,6 @@ class DiT(nn.Module):
         # ===== Cross-attention =====
         residual = x
         x = self.norm2(x)
-        # For cross-attention, we use the built-in module which expects [seq_len, batch, embed_dim]
         x = self.cross_attn(
             x.transpose(0, 1),
             text_emb.transpose(0, 1),
@@ -153,11 +150,8 @@ class DiT(nn.Module):
         # ===== Gated MLP =====
         residual = x
         x_norm = self.norm3(x)
-        # shape: [batch, seq_len, 4*hidden_dim]
         x_proj = self.act(self.mlp_fc1(x_norm))
-        # shape: [batch, seq_len, 4*hidden_dim]
         gate = torch.sigmoid(self.gate(x_norm))
-        # shape: [batch, seq_len, hidden_dim]
         x = self.mlp_fc2(x_proj * gate) + residual
 
         return x
