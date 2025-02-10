@@ -72,7 +72,7 @@ class SpeechGenerator:
         self.alphas_cumprod = torch.cumprod(self.alphas, dim=0).to(self.device)
 
 
-    def generate_speech_from_file(self, file_path, text_prompt):
+    def generate_speech_from_file(self, file_path, text_prompt, cond_by_audio=False):
         # Load waveform from file and resample if necessary
         waveform, sr = torchaudio.load(file_path)
         if sr != self.sample_rate:
@@ -87,11 +87,11 @@ class SpeechGenerator:
         processed_audio = processor_out["input_values"].squeeze(0)
         padding_mask_audio = processor_out.get("padding_mask", torch.ones_like(processed_audio))
 
-        return self.generate_speech_from_audio_tensor(processed_audio, padding_mask_audio, text_prompt, True)
+        return self.generate_speech_from_audio_tensor(processed_audio, padding_mask_audio, text_prompt, True, cond_by_audio)
 
 
     @torch.no_grad()
-    def generate_speech_from_audio_tensor(self, audio_tensor, padding_mask_audio, text_prompt, is_tokenized=False, is_slp=False):
+    def generate_speech_from_audio_tensor(self, audio_tensor, padding_mask_audio, text_prompt, is_tokenized=False, is_slp=False, cond_by_audio=False):
         # Encode the audio to obtain latents and scales
         audio_latents, audio_scales = self.ditto_model.nac.audio_encoder(audio_tensor, padding_mask_audio)
         max_length = self.ditto_model.nac.language_model.config.n_positions
@@ -106,7 +106,7 @@ class SpeechGenerator:
         t = torch.full((audio_latents.size(0),), ConfigDiTTO.DIFFUSION_STEPS-1, device=self.device, dtype=torch.long)
 
         audio_latents = self.ditto_model.q_sample(audio_latents, t)
-        refined_latents = self.__sample_latents(text_embeddings, audio_latents, text_tokens, audio_tensor, is_slp)
+        refined_latents = self.__sample_latents(text_embeddings, audio_latents, text_tokens, audio_tensor, is_slp, cond_by_audio)
 
         return self.__generate_speech_from_latents(refined_latents, audio_scales, padding_mask_audio)
     
@@ -128,13 +128,11 @@ class SpeechGenerator:
         return generated_waveform.squeeze(0)
     
     @torch.no_grad()
-    def __p_sample(self, x, t, text_emb, audio_emb=None):
+    def __p_sample(self, x, t, text_emb):
         """
             Reverse diffusion step.
         """
-
-        cond_emb = text_emb if audio_emb is None else torch.cat([text_emb, audio_emb], dim=1)
-        noise_pred = self.ditto_model(x, cond_emb, t)
+        noise_pred = self.ditto_model(x, text_emb, t)
         
         beta_t = self.betas[t].view(-1, 1, 1)
         alpha_t = self.alphas[t].view(-1, 1, 1)
@@ -149,11 +147,11 @@ class SpeechGenerator:
         return x_prev
 
     @torch.no_grad()
-    def __sample_latents(self, text_emb, audio_emb, text_prompt=None, audio=None, is_slp=False):
+    def __sample_latents(self, text_emb, audio_emb, text_prompt=None, audio=None, is_slp=False, cond_by_audio=False):
         """
             All reverse diffusion steps
         """
-        x = torch.randn_like(audio_emb)
+        x = torch.randn_like(audio_emb) if not cond_by_audio else audio_emb
 
         if is_slp:
             L_pred = self.slp(text_prompt, audio)
@@ -162,5 +160,5 @@ class SpeechGenerator:
         device = x.device
         for t_val in tqdm(reversed(range(ConfigDiTTO.DIFFUSION_STEPS))):
             t_tensor = torch.full((x.shape[0],), t_val, device=device, dtype=torch.long)
-            x = self.__p_sample(x, t_tensor, text_emb, audio_emb)
+            x = self.__p_sample(x, t_tensor, text_emb)
         return x
