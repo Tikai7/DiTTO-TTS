@@ -1,6 +1,6 @@
 # DiTTo-TTS: Diffusion Transformers for Scalable Text-To-Speech without domain-specific factors
 
-**Implemented by:** Abdelkrim Halimi, Walid Ghenait, Melissa Dahlia Attabi  
+**Implemented by:** Abdelkrim Halimi, Walid Ghenaiet, Melissa Dahlia Attabi  
 *Original paper by:* Keon Lee, Dong Won Kim, Jaehyeon Kim, Seungjun Chung, Jaewoong Cho
 
 ## Introduction
@@ -33,17 +33,16 @@ Encodes audio signals into latent representations aligned with the text, quantiz
 <img src="https://github.com/user-attachments/assets/56c86287-6b97-41cb-84c7-666ac7c427db" alt="Neural Audio Codec" style="float: right; width: 300px; margin: 0 0 10px 10px;" />
 
 **Loss Function:**
-$$
-L(\psi) = L_{NAC}(\psi) + \lambda L_{LM}(\psi), \quad L_{LM}(\psi) = -\log p_{\phi}(x|f(z_{speech}))
-$$
+
+![Loss Function](https://render.githubusercontent.com/render/math?math=L(%5Cpsi)%20=%20L_{NAC}(%5Cpsi)%20+%20%5Clambda%20L_{LM}(%5Cpsi),%20%5Cquad%20L_{LM}(%5Cpsi)%20=%20-%5Clog%20p_{%5Cphi}(x|f(z_{speech})))
 
 ### Diffusion Model
 - Generates speech from textual representations \( z_{text} \) and audio \( z_{speech} \) using a diffusion process.
 
 **Loss Function:**
-$$
-L_{\text{diffusion}} = \mathbb{E}_{t \sim \mathcal{U}(1,T), \epsilon \sim \mathcal{N}(0,I)} \left[ \| v^{(t)} - v_{\theta}(z^{(t)}, x, t) \|^2 \right]
-$$
+
+![Diffusion Loss](https://render.githubusercontent.com/render/math?math=L_{%5Ctext%7Bdiffusion%7D}%20=%20%5Cmathbb%7BE%7D_%7Bt%20%5Csim%20%5Cmathcal%7BU%7D(1,T),%20%5Cepsilon%20%5Csim%20%5Cmathcal%7BN%7D(0,I)%7D%20%5Cleft%5B%20%5C%7C%20v^{(t)}%20-%20v_{%5Ctheta}(z^{(t)},%20x,%20t)%20%5C%7C^2%20%5Cright%5D)
+
 
 <img src="https://github.com/user-attachments/assets/48d2a465-bc5c-4148-ab3a-ff59b7343693" alt="Diffusion Model" style="float: right; width: 300px; margin: 0 0 10px 10px;" />
 
