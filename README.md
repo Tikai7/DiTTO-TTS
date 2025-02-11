@@ -1,5 +1,7 @@
 # DiTTo-TTS: Diffusion Transformers for Scalable Text-To-Speech without domain-specific factors
-- By Keon Lee, Dong Won Kim, Jaehyeon Kim, Seungjun Chung, Jaewoong Cho
+
+**Implemented by:** Abdelkrim Halimi, Walid Ghenait, Melissa Dahlia Attabi  
+*Original paper by:* Keon Lee, Dong Won Kim, Jaehyeon Kim, Seungjun Chung, Jaewoong Cho
 
 ## Introduction
 Latent Diffusion Models (LDMs) have shown high performance in various tasks such as image, audio, and video generation. When applied to Text-To-Speech (TTS), these models require domain-specific factors to ensure proper temporal alignment between text and speech. However, this dependency complicates data preparation and limits model scalability.
@@ -17,7 +19,7 @@ DiTTo-TTS introduces a novel approach to overcome these limitations while achiev
 - Cross-attention between encoded text and audio enables length prediction.
 - Trained separately using cross-entropy loss.
 
-![image](https://github.com/user-attachments/assets/29878190-513b-4c80-928b-0b2f527ee2aa)
+<img src="https://github.com/user-attachments/assets/29878190-513b-4c80-928b-0b2f527ee2aa" alt="Speech Length Predictor" style="float: right; width: 300px; margin: 0 0 10px 10px;" />
 
 ### Neural Audio Codec (NAC)
 Encodes audio signals into latent representations aligned with the text, quantizes them, and then decodes them.
@@ -27,8 +29,8 @@ Encodes audio signals into latent representations aligned with the text, quantiz
 - Vector Quantizer
 - Decoder
 - Language Model
-  
-![nac](https://github.com/user-attachments/assets/5fdd1405-8cde-463f-b7de-4dc53db227ec)
+
+<img src="https://github.com/user-attachments/assets/56c86287-6b97-41cb-84c7-666ac7c427db" alt="Neural Audio Codec" style="float: right; width: 300px; margin: 0 0 10px 10px;" />
 
 **Loss Function:**
 \[
@@ -37,11 +39,13 @@ L(\psi) = L_{NAC}(\psi) + \lambda L_{LM}(\psi), \quad L_{LM}(\psi) = -\log p_{\p
 
 ### Diffusion Model
 - Generates speech from textual representations \( z_{text} \) and audio \( z_{speech} \) using a diffusion process.
+
 **Loss Function:**
+\[
 L_{\text{diffusion}} = \mathbb{E}_{t \sim \mathcal{U}(1,T), \epsilon \sim \mathcal{N}(0,I)} \left[ \| v^{(t)} - v_{\theta}(z^{(t)}, x, t) \|^2 \right]
+\]
 
-![image](https://github.com/user-attachments/assets/48d2a465-bc5c-4148-ab3a-ff59b7343693)
-
+<img src="https://github.com/user-attachments/assets/48d2a465-bc5c-4148-ab3a-ff59b7343693" alt="Diffusion Model" style="float: right; width: 300px; margin: 0 0 10px 10px;" />
 
 ### Audio-Text Pipeline
 - **Dataset:** MLS Librispeech – 10,000 selected French audio samples with text transcriptions.
@@ -49,14 +53,9 @@ L_{\text{diffusion}} = \mathbb{E}_{t \sim \mathcal{U}(1,T), \epsilon \sim \mathc
   - **Text:** Tokenization (GPT2, ByT5).
   - **Audio:** Resampled to 24kHz.
 - **Audio Signal Reconstruction:** BigVGAN.
-![image](https://github.com/user-attachments/assets/377e3dde-0e1d-42ca-a7e5-d1a1dae3ad6c)
+
+<img src="https://github.com/user-attachments/assets/377e3dde-0e1d-42ca-a7e5-d1a1dae3ad6c" alt="Audio-Text Pipeline" style="float: right; width: 300px; margin: 0 0 10px 10px;" />
 
 ---
-
-## Implementation
-**Developed by:**
-- Abdelkrim Halimi
-- Walid Ghenait
-- Melissa Dahlia Attabi
 
 For more details, refer to the original research or documentation.
